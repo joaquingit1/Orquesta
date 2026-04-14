@@ -32,24 +32,10 @@ async def run_synthesizer(engineer: dict) -> dict:
 
     response = await client.messages.create(
         model="claude-opus-4-6",
-        max_tokens=200,
+        max_tokens=1024,
         thinking={"type": "adaptive"},
         system=SYNTHESIZER_PROMPT,
         messages=[{"role": "user", "content": user_msg}],
-        output_config={
-            "format": {
-                "type": "json_schema",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "score": {"type": "number"},
-                        "text": {"type": "string"},
-                    },
-                    "required": ["score", "text"],
-                    "additionalProperties": False,
-                },
-            }
-        },
     )
 
     text_block = next((b for b in response.content if b.type == "text"), None)
