@@ -1,0 +1,74 @@
+{
+  "id": "diego",
+  "name": "Diego Ramirez",
+  "role": "Mid Engineer",
+  "github": "diego-ramirez",
+  "salary": "$100k",
+  "tenure": "1.5 years",
+  "timezone": "Mexico City UTC-6",
+  "summary": {
+    "prs_opened": 52,
+    "prs_merged": 51,
+    "commits": 203,
+    "reviews_given": 48,
+    "avg_pr_size": "94 lines",
+    "avg_review_turnaround": "2.1 hours",
+    "test_coverage_trend": "82% → 84% (stable+)",
+    "ai_tool_sessions": 84,
+    "ai_tool_adoption": "72%"
+  },
+  "notable_prs": [
+    {
+      "number": 287,
+      "title": "Add Redis caching layer for user profiles",
+      "files_changed": 6,
+      "additions": 156,
+      "deletions": 23,
+      "description": "Adds a Redis caching layer for user profile lookups with TTL-based expiry and cache invalidation on update.",
+      "diff_snippet": "export class UserProfileCache {\n  private readonly TTL = 300; // 5 minutes\n\n  async get(userId: string): Promise<UserProfile | null> {\n    const cached = await this.redis.get(`profile:${userId}`);\n    if (cached) {\n      this.metrics.increment('cache.hit');\n      return JSON.parse(cached);\n    }\n    this.metrics.increment('cache.miss');\n    const profile = await this.db.users.findById(userId);\n    if (profile) {\n      await this.redis.setex(`profile:${userId}`, this.TTL, JSON.stringify(profile));\n    }\n    return profile;\n  }\n\n  async invalidate(userId: string): Promise<void> {\n    await this.redis.del(`profile:${userId}`);\n  }\n}",
+      "review_comments": 4,
+      "quality_signals": ["clean cache pattern", "metrics instrumented", "but Ana caught a concurrency issue in review"]
+    },
+    {
+      "number": 356,
+      "title": "Add pagination to all list endpoints",
+      "files_changed": 14,
+      "additions": 312,
+      "deletions": 87,
+      "description": "Standardized pagination across all list endpoints using a shared paginate() helper with consistent defaults.",
+      "diff_snippet": "export function paginate<T>(query: Query<T>, params: PaginationParams): PaginatedQuery<T> {\n  const { page = 1, limit = 20, sortBy = 'createdAt', order = 'desc' } = params;\n  return {\n    ...query,\n    skip: (page - 1) * limit,\n    take: limit,\n    orderBy: { [sortBy]: order },\n    _meta: { page, limit, sortBy, order }\n  };\n}",
+      "review_comments": 1,
+      "quality_signals": ["good abstraction", "applied consistently across 14 files", "sensible defaults"]
+    }
+  ],
+  "review_quality_samples": [
+    {
+      "pr_reviewed": "#389 (Carlos's webhook handler)",
+      "comment": "This works, but the retry logic is buried inside the handler. If we extract it into a withRetry() wrapper, we can reuse it for the email sender and the Stripe webhook too. Want me to pair on this? I refactored something similar last sprint.",
+      "quality": "exceptional — sees the bigger picture, offers to pair"
+    }
+  ],
+  "kpis": {
+    "sprint_velocity": "avg 11 points/sprint",
+    "goals_completed": "7/10",
+    "goals_detail": [
+      { "goal": "Add caching layer for user profiles", "status": "completed", "impact": "API response time -40%" },
+      { "goal": "Paginate all list endpoints", "status": "completed", "impact": "eliminated 3 timeout incidents" },
+      { "goal": "Reduce bundle size by 15%", "status": "completed", "impact": "achieved 18% reduction" },
+      { "goal": "Migrate to new logging format", "status": "completed", "impact": "adopted by 2 other teams" },
+      { "goal": "Ship notification preferences UI", "status": "completed", "impact": "support tickets -25%" },
+      { "goal": "Implement webhook retry system", "status": "in_progress", "impact": "70% complete" },
+      { "goal": "Lead frontend guild meeting (2x)", "status": "completed", "impact": "started frontend standards doc" },
+      { "goal": "Improve lighthouse score to 90+", "status": "missed", "impact": "at 84, blocked by third-party scripts" },
+      { "goal": "Write onboarding guide for new eng", "status": "missed", "impact": "started but not finished" },
+      { "goal": "Ship dark mode", "status": "missed", "impact": "deprioritized mid-quarter" }
+    ]
+  },
+  "anthropic_usage": {
+    "total_sessions": 84,
+    "total_tokens": "1.1M",
+    "use_cases": ["boilerplate generation", "test writing", "documentation"],
+    "adoption_rate": "72%",
+    "quality_note": "Uses AI for repetitive tasks. Hasn't adopted it for design or architecture thinking yet — opportunity for growth."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "manager_calendar": "manager@orquesta.dev",
+  "available_slots": [
+    { "date": "2026-04-27", "time": "10:00", "duration": 45 },
+    { "date": "2026-04-27", "time": "14:00", "duration": 45 },
+    { "date": "2026-04-28", "time": "10:00", "duration": 45 },
+    { "date": "2026-04-28", "time": "14:00", "duration": 45 }
+  ],
+  "scheduling_logic": "Lowest scores get earliest slots. Carlos first, then Diego, then Sofia, then Ana."
+}

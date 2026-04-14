@@ -1,0 +1,14 @@
+{
+  "team_total": {
+    "sessions": 464,
+    "tokens_used": "6.8M",
+    "estimated_cost": "$48.20",
+    "estimated_time_saved": "~120 hours"
+  },
+  "per_person": {
+    "ana":    { "sessions": 156, "tokens": "2.4M", "adoption": "89%", "primary_use": "architecture + debugging",  "pattern": "high-leverage" },
+    "diego":  { "sessions": 84,  "tokens": "1.1M", "adoption": "72%", "primary_use": "boilerplate + tests",       "pattern": "productivity" },
+    "carlos": { "sessions": 23,  "tokens": "180K", "adoption": "34%", "primary_use": "occasional debugging",      "pattern": "underutilized" },
+    "sofia":  { "sessions": 201, "tokens": "3.1M", "adoption": "94%", "primary_use": "learning + everything",     "pattern": "accelerated learning" }
+  }
+}
