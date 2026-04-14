@@ -1,6 +1,6 @@
 # Orquesta — Demo Script
 
-**Duration:** 5-6 minutes
+**Duration:** 2 minutes
 **Setup:** App is open to Screen 1 (Team Overview). Dark theme. Four engineer cards. One button.
 
 ---
