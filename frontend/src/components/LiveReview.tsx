@@ -86,7 +86,7 @@ function DiffBlock({ pr }: { pr: PR }) {
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span className="text-xs font-mono text-accent-cyan">#{pr.number}</span>
         <span className="text-xs text-foreground/90 font-medium truncate">{pr.title}</span>
-        <span className="text-xs text-muted ml-auto whitespace-nowrap">
+        <span className="text-xs text-foreground/50 ml-auto whitespace-nowrap">
           {pr.files_changed} file{pr.files_changed !== 1 ? "s" : ""}{" "}
           <span className="text-accent-green">+{pr.additions}</span>{" "}
           <span className="text-accent-red">-{pr.deletions}</span>
@@ -117,7 +117,7 @@ function DiffBlock({ pr }: { pr: PR }) {
           {pr.quality_signals.map((sig, i) => (
             <span
               key={i}
-              className="text-[10px] font-mono text-muted bg-white/5 rounded px-1.5 py-0.5"
+              className="text-[10px] font-mono text-foreground/50 bg-white/5 rounded px-1.5 py-0.5"
             >
               {sig}
             </span>
@@ -145,9 +145,9 @@ function MetricCard({
       animate="visible"
       className="rounded-lg border border-card-border bg-card-bg p-3 flex flex-col gap-1"
     >
-      <span className="text-[10px] uppercase tracking-wider text-muted">{label}</span>
+      <span className="text-[10px] uppercase tracking-wider text-foreground/50">{label}</span>
       <span className={`text-lg font-semibold ${color}`}>{value}</span>
-      {sub && <span className="text-[10px] text-muted">{sub}</span>}
+      {sub && <span className="text-[10px] text-foreground/50">{sub}</span>}
     </motion.div>
   );
 }
@@ -157,7 +157,7 @@ function MetricsGrid({ summary }: { summary: ReviewState["profile"] }) {
   const s = summary.summary;
   return (
     <motion.div variants={cardEntrance} initial="hidden" animate="visible">
-      <h3 className="text-xs font-mono uppercase tracking-wider text-muted mb-2">
+      <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50 mb-2">
         Activity Metrics
       </h3>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -178,24 +178,24 @@ function AIUsageCard({ usage }: { usage: AIUsage }) {
       animate="visible"
       className="rounded-lg border border-card-border bg-card-bg p-3 mt-3"
     >
-      <h3 className="text-xs font-mono uppercase tracking-wider text-muted mb-2">
+      <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50 mb-2">
         AI Tool Usage
       </h3>
       <div className="grid grid-cols-3 gap-3 mb-2">
         <div>
-          <span className="text-[10px] text-muted block">Sessions</span>
+          <span className="text-[10px] text-foreground/50 block">Sessions</span>
           <span className="text-sm font-semibold text-accent-cyan">{usage.total_sessions}</span>
         </div>
         <div>
-          <span className="text-[10px] text-muted block">Tokens</span>
+          <span className="text-[10px] text-foreground/50 block">Tokens</span>
           <span className="text-sm font-semibold text-accent-cyan">{usage.total_tokens}</span>
         </div>
         <div>
-          <span className="text-[10px] text-muted block">Adoption</span>
+          <span className="text-[10px] text-foreground/50 block">Adoption</span>
           <span className="text-sm font-semibold text-accent-cyan">{usage.adoption_rate}</span>
         </div>
       </div>
-      <div className="text-[10px] text-muted mb-1">
+      <div className="text-[10px] text-foreground/50 mb-1">
         <span className="text-foreground/70 font-medium">Pattern:</span> {usage.pattern}
       </div>
       <div className="flex flex-wrap gap-1">
@@ -221,7 +221,7 @@ function KPIPanel({ kpis }: { kpis: KPIs }) {
       className="rounded-lg border border-card-border bg-card-bg p-3 mt-3"
     >
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-mono uppercase tracking-wider text-muted">KPI Goals</h3>
+        <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50">KPI Goals</h3>
         <span className="text-xs font-semibold text-accent-cyan">{kpis.goals_completed}</span>
       </div>
       <div className="space-y-1.5">
@@ -465,9 +465,9 @@ export function LiveReview({ state, elapsedTime }: Props) {
       <header className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-card-border bg-card-bg/80 backdrop-blur">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <h1 className="text-xs font-mono tracking-[0.3em] text-muted uppercase">Orquesta</h1>
+          <h1 className="text-xs font-mono tracking-[0.3em] text-foreground/50 uppercase">Orquesta</h1>
           <div className="w-px h-4 bg-card-border" />
-          <span className="text-xs text-muted">{PHASE_LABELS[phase] ?? phase}</span>
+          <span className="text-xs text-foreground/50">{PHASE_LABELS[phase] ?? phase}</span>
         </div>
 
         {/* Progress */}
@@ -493,7 +493,7 @@ export function LiveReview({ state, elapsedTime }: Props) {
               />
             ))}
           </div>
-          <span className="text-xs font-mono text-muted">{formatTime(elapsedTime)}</span>
+          <span className="text-xs font-mono text-foreground/50">{formatTime(elapsedTime)}</span>
         </div>
       </header>
 
@@ -523,7 +523,7 @@ export function LiveReview({ state, elapsedTime }: Props) {
                     Currently reviewing:{" "}
                     <span className="text-accent-cyan">{profile.name}</span>
                   </h2>
-                  <p className="text-xs text-muted">
+                  <p className="text-xs text-foreground/50">
                     {profile.role} &middot; {profile.tenure}
                   </p>
                 </div>
@@ -540,14 +540,14 @@ export function LiveReview({ state, elapsedTime }: Props) {
               className="flex items-center gap-3 py-12 justify-center"
             >
               <div className="w-4 h-4 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-muted">Collecting evidence...</span>
+              <span className="text-sm text-foreground/50">Collecting evidence...</span>
             </motion.div>
           )}
 
           {/* Code Diffs */}
           {state.prs.length > 0 && (
             <div>
-              <h3 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">
+              <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50 mb-3">
                 Code Evidence &middot; {state.prs.length} PR{state.prs.length !== 1 ? "s" : ""}
               </h3>
               {state.prs.map((pr, i) => (
@@ -591,7 +591,7 @@ export function LiveReview({ state, elapsedTime }: Props) {
               className="flex flex-col items-center justify-center h-full gap-3 text-center"
             >
               <div className="w-6 h-6 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-muted">Gathering data for analysis...</p>
+              <p className="text-sm text-foreground/50">Gathering data for analysis...</p>
             </motion.div>
           )}
 
