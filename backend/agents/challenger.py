@@ -3,6 +3,7 @@ Challenger agent — Claude Sonnet, argues AGAINST the engineer.
 """
 from typing import AsyncGenerator
 from agents.utils import client, format_engineer_context
+from session_store import record_usage
 
 CHALLENGER_PROMPT = """You are the Challenger in a structured performance review debate.
 Your sole job: identify the most significant CONCERNS about this engineer's performance.
@@ -17,6 +18,7 @@ Rules:
 async def run_challenger(
     engineer: dict,
     project_summary: dict | None = None,
+    session_id: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Stream the challenger's critique of the engineer."""
     context = format_engineer_context(engineer, project_summary)
@@ -25,8 +27,9 @@ async def run_challenger(
         f"based on this data.\n\n{context}"
     )
 
+    model = "claude-sonnet-4-6"
     async with client.messages.stream(
-        model="claude-sonnet-4-6",
+        model=model,
         max_tokens=400,
         system=CHALLENGER_PROMPT,
         messages=[{"role": "user", "content": user_msg}],
@@ -34,3 +37,5 @@ async def run_challenger(
         async for text in stream.text_stream:
             if text:
                 yield text
+        final = await stream.get_final_message()
+        record_usage(session_id, model, getattr(final, "usage", None))

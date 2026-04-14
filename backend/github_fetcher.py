@@ -356,6 +356,71 @@ async def fetch_repo_engineers(
             )
             engineers.append(engineer)
 
+        # Fallback enrichment: if an engineer has no PR-based Code Evidence,
+        # fetch detailed commit diffs for their top 5 commits and present them
+        # as notable_prs (using the 7-char sha as the "number").
+        commit_detail_tasks = []
+        commit_detail_targets: list[tuple[str, str]] = []  # (engineer_id, sha)
+        for eng in engineers:
+            if eng.get("notable_prs"):
+                continue
+            for commit in (eng.get("recent_commits") or [])[:5]:
+                sha = commit.get("sha", "")
+                if not sha:
+                    continue
+                commit_detail_targets.append((eng["id"], sha))
+                commit_detail_tasks.append(
+                    _safe_get(client, f"/repos/{owner}/{repo}/commits/{sha}")
+                )
+
+        if commit_detail_tasks:
+            commit_details = await asyncio.gather(*commit_detail_tasks)
+            details_by_eng: dict[str, list] = {}
+            for (eng_id, _sha), detail in zip(commit_detail_targets, commit_details):
+                if isinstance(detail, dict) and detail.get("sha"):
+                    details_by_eng.setdefault(eng_id, []).append(detail)
+
+            for eng in engineers:
+                details = details_by_eng.get(eng["id"])
+                if not details:
+                    continue
+                commit_notable: list[dict] = []
+                touched_dirs: dict[str, int] = dict(
+                    (d["name"], d["file_count"]) for d in (eng.get("top_dirs_touched") or [])
+                )
+                for cd in details:
+                    files_list = cd.get("files", []) or []
+                    stats = cd.get("stats", {}) or {}
+                    sha_full = cd.get("sha", "") or ""
+                    sha_short = sha_full[:7]
+                    msg = (cd.get("commit", {}).get("message", "") or "").split("\n")[0][:140]
+                    commit_date = (cd.get("commit", {}).get("author", {}) or {}).get("date", "")
+                    for f in files_list:
+                        fname = f.get("filename", "") or ""
+                        if not fname:
+                            continue
+                        top = fname.split("/", 1)[0]
+                        if top:
+                            touched_dirs[top] = touched_dirs.get(top, 0) + 1
+                    commit_notable.append({
+                        "number": sha_short,  # used as display id; frontend renders as #sha
+                        "title": msg or f"Commit {sha_short}",
+                        "description": (cd.get("commit", {}).get("message", "") or "")[:200],
+                        "files_changed": len(files_list),
+                        "additions": stats.get("additions", 0),
+                        "deletions": stats.get("deletions", 0),
+                        "review_comments": 0,
+                        "merged_at": commit_date,
+                        "quality_signals": ["commit (no PR)"],
+                        "diff_snippet": _build_diff_snippet(files_list),
+                        "files_sample": [f.get("filename", "") for f in files_list[:10]],
+                    })
+                if commit_notable:
+                    eng["notable_prs"] = commit_notable
+                    eng["top_dirs_touched"] = [
+                        {"name": n, "file_count": c} for n, c in sorted(touched_dirs.items(), key=lambda kv: -kv[1])[:8]
+                    ]
+
         return engineers
 
 

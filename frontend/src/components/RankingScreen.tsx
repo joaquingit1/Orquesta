@@ -48,7 +48,16 @@ interface RawEntry {
 }
 
 function normalizeRanking(raw: unknown, opts: { headlineFallback: string }): RankingData {
-  const data = (raw ?? {}) as { rankings?: RawEntry[]; meta?: { total_cost?: string; human_equivalent?: string } };
+  const data = (raw ?? {}) as {
+    rankings?: RawEntry[];
+    meta?: {
+      total_cost?: string;
+      human_equivalent?: string;
+      input_tokens?: number;
+      output_tokens?: number;
+      api_calls?: number;
+    };
+  };
   const list = Array.isArray(data.rankings) ? data.rankings : [];
 
   const entries: NormalizedEntry[] = list.map((e, i) => {
@@ -77,26 +86,13 @@ function normalizeRanking(raw: unknown, opts: { headlineFallback: string }): Ran
     };
   });
 
-  // Estimate cost & human-equivalent when the backend doesn't provide them.
-  // Rough per-contributor budget for the multi-agent pipeline:
-  //  ~18k input + 3k output tokens across scanner/advocate/challenger/synthesizer.
-  //  Using Sonnet 4.6 list pricing ($3/Mtok in, $15/Mtok out) → ~$0.10/contributor.
-  //  Manual review of one engineer's PRs/commits ≈ 2.5h.
-  const n = entries.length;
-  const costEstimate = n > 0 ? `$${(n * 0.1).toFixed(2)}` : "—";
-  const humanHours = n * 2.5;
-  const humanEquivalentEstimate =
-    n === 0
-      ? "—"
-      : humanHours >= 8
-        ? `${(humanHours / 8).toFixed(1)} workdays`
-        : `${humanHours.toFixed(1)} hours`;
-
+  // The GitHub ranking endpoint returns real meta (tokens + cost + human estimate);
+  // the demo endpoint returns hardcoded strings. Either way, trust the server.
   return {
     entries,
     headline: opts.headlineFallback,
-    cost: data.meta?.total_cost ?? costEstimate,
-    humanEquivalent: data.meta?.human_equivalent ?? humanEquivalentEstimate,
+    cost: data.meta?.total_cost ?? "—",
+    humanEquivalent: data.meta?.human_equivalent ?? "—",
   };
 }
 

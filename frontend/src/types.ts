@@ -11,7 +11,7 @@ export interface EngineerSummary {
 }
 
 export interface PR {
-  number: number;
+  number: number | string;
   title: string;
   files_changed: number;
   additions: number;

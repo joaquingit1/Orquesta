@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 from typing import Optional
 from fastapi import APIRouter, Cookie, HTTPException
 from fastapi.responses import StreamingResponse
@@ -8,7 +9,16 @@ import httpx
 
 from auth_store import get_auth_session
 from github_fetcher import fetch_repo_engineers, fetch_project_context
-from session_store import create_session, get_engineers, get_engineer, update_verdict, get_verdicts, get_project
+from session_store import (
+    create_session,
+    get_engineers,
+    get_engineer,
+    update_verdict,
+    get_verdicts,
+    get_project,
+    get_meta,
+    add_duration,
+)
 from agents.scanner import run_scanner, run_scanner_deep
 from agents.advocate import run_advocate
 from agents.challenger import run_challenger
@@ -75,9 +85,16 @@ async def import_github(
     if not engineers:
         raise HTTPException(status_code=404, detail="No contributors found in this repo")
 
-    project_summary = await run_project_analyst(project_context)
+    session_id = create_session(engineers, project=None)
 
-    session_id = create_session(engineers, project=project_summary)
+    project_t0 = time.monotonic()
+    project_summary = await run_project_analyst(project_context, session_id=session_id)
+    add_duration(session_id, time.monotonic() - project_t0)
+
+    # Attach project to session now that the analyst has run.
+    from session_store import _sessions as _ss  # local import to avoid exposing in module API
+    if session_id in _ss:
+        _ss[session_id]["project"] = project_summary
 
     return {
         "session_id": session_id,
@@ -104,6 +121,7 @@ async def _stream_review(session_id: str, engineer_id: str):
         return
 
     project_summary = get_project(session_id)
+    t0 = time.monotonic()
 
     # Emit the raw evidence first so the UI can render commits/PRs on the left
     # while the scanner agent narrates them on the right.
@@ -120,29 +138,29 @@ async def _stream_review(session_id: str, engineer_id: str):
         yield _sse("pr", pr)
         await asyncio.sleep(0.08)
 
-    async for chunk in run_scanner(engineer, project_summary):
+    async for chunk in run_scanner(engineer, project_summary, session_id=session_id):
         yield _sse_text("scanning", chunk)
 
-    async for chunk in run_scanner_deep(engineer, project_summary):
+    async for chunk in run_scanner_deep(engineer, project_summary, session_id=session_id):
         yield _sse_text("thinking", chunk)
 
     audit_text_parts: list[str] = []
-    async for chunk in run_code_auditor(engineer, project_summary):
+    async for chunk in run_code_auditor(engineer, project_summary, session_id=session_id):
         audit_text_parts.append(chunk)
         yield _sse_text("audit", chunk)
 
     advocate_text_parts: list[str] = []
-    async for chunk in run_advocate(engineer, project_summary=project_summary):
+    async for chunk in run_advocate(engineer, project_summary=project_summary, session_id=session_id):
         advocate_text_parts.append(chunk)
         yield _sse_text("advocate", chunk)
 
     challenger_text_parts: list[str] = []
-    async for chunk in run_challenger(engineer, project_summary=project_summary):
+    async for chunk in run_challenger(engineer, project_summary=project_summary, session_id=session_id):
         challenger_text_parts.append(chunk)
         yield _sse_text("challenger", chunk)
 
     rebuttal_text_parts: list[str] = []
-    async for chunk in run_advocate(engineer, is_reply=True, project_summary=project_summary):
+    async for chunk in run_advocate(engineer, is_reply=True, project_summary=project_summary, session_id=session_id):
         rebuttal_text_parts.append(chunk)
         yield _sse_text("advocate_reply", chunk)
 
@@ -153,8 +171,11 @@ async def _stream_review(session_id: str, engineer_id: str):
         rebuttal_text="".join(rebuttal_text_parts),
         audit_text="".join(audit_text_parts),
         project_summary=project_summary,
+        session_id=session_id,
     )
     update_verdict(session_id, engineer_id, verdict["score"], verdict["text"])
+    add_duration(session_id, time.monotonic() - t0)
+
     yield _sse("verdict", {
         "score": verdict["score"],
         "text": verdict["text"],
@@ -217,4 +238,49 @@ async def get_ranking(session_id: str):
     for i, entry in enumerate(entries, 1):
         entry["rank"] = i
 
-    return {"session_id": session_id, "rankings": entries}
+    meta = get_meta(session_id)
+    usage = meta["usage"]
+    duration = meta["duration_seconds"]
+
+    # Human-equivalent: grounded in what was actually reviewed.
+    #   15 min baseline per contributor (context switching, reading profile)
+    # + 10 min per PR inspected (diff + tests + description)
+    # + 0.5 min per commit skimmed.
+    total_prs = sum(len(e.get("notable_prs") or []) for e in engineers)
+    total_commits = sum(len(e.get("recent_commits") or []) for e in engineers)
+    human_minutes = len(engineers) * 15 + total_prs * 10 + total_commits * 0.5
+    human_hours = human_minutes / 60.0
+    if human_hours >= 8:
+        human_equivalent = f"~{human_hours / 8:.1f} workdays"
+    elif human_hours >= 1:
+        human_equivalent = f"~{human_hours:.1f} hours"
+    else:
+        human_equivalent = f"~{int(human_minutes)} minutes"
+
+    if duration >= 60:
+        duration_str = f"{int(duration // 60)}m {int(duration % 60)}s"
+    else:
+        duration_str = f"{duration:.1f}s"
+
+    total_cost_str = f"${usage['cost_usd']:.2f}" if usage["cost_usd"] >= 0.01 else f"${usage['cost_usd']:.4f}"
+
+    return {
+        "session_id": session_id,
+        "rankings": entries,
+        "meta": {
+            "total_cost": total_cost_str,
+            "total_cost_usd": round(usage["cost_usd"], 4),
+            "input_tokens": usage["input_tokens"],
+            "output_tokens": usage["output_tokens"],
+            "cache_read_input_tokens": usage["cache_read_input_tokens"],
+            "cache_creation_input_tokens": usage["cache_creation_input_tokens"],
+            "api_calls": usage["calls"],
+            "by_model": usage["by_model"],
+            "duration_seconds": round(duration, 1),
+            "duration": duration_str,
+            "human_equivalent": human_equivalent,
+            "human_minutes": round(human_minutes, 1),
+            "total_prs_analyzed": total_prs,
+            "total_commits_analyzed": total_commits,
+        },
+    }

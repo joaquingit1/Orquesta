@@ -49,8 +49,10 @@ README (truncated):
 {readme[:3500] if readme else '(no README available)'}"""
 
 
-async def run_project_analyst(project_context: dict) -> dict:
+async def run_project_analyst(project_context: dict, session_id: str | None = None) -> dict:
     """Returns a project summary dict used as context for every contributor review."""
+    from session_store import record_usage
+
     if not project_context:
         return _fallback(project_context)
 
@@ -60,9 +62,10 @@ async def run_project_analyst(project_context: dict) -> dict:
         "real impact lives in this codebase vs boilerplate.\n\n" + context_text
     )
 
+    model = "claude-sonnet-4-6"
     try:
         response = await client.messages.create(
-            model="claude-sonnet-4-6",
+            model=model,
             max_tokens=800,
             system=PROJECT_ANALYST_PROMPT,
             messages=[{"role": "user", "content": user_msg}],
@@ -86,6 +89,8 @@ async def run_project_analyst(project_context: dict) -> dict:
         )
     except Exception:
         return _fallback(project_context)
+
+    record_usage(session_id, model, getattr(response, "usage", None))
 
     text_block = next((b for b in response.content if b.type == "text"), None)
     if text_block is None:

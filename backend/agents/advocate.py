@@ -3,6 +3,7 @@ Advocate agent — Claude Sonnet, argues FOR the engineer.
 """
 from typing import AsyncGenerator
 from agents.utils import client, format_engineer_context
+from session_store import record_usage
 
 ADVOCATE_PROMPT = """You are the Advocate in a structured performance review debate.
 Your sole job: make the STRONGEST possible case FOR this engineer based on the data.
@@ -17,6 +18,7 @@ async def run_advocate(
     engineer: dict,
     is_reply: bool = False,
     project_summary: dict | None = None,
+    session_id: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Stream the advocate's argument for the engineer."""
     context = format_engineer_context(engineer, project_summary)
@@ -31,8 +33,9 @@ async def run_advocate(
             f"Make the strongest case FOR {engineer['name']} based on this data.\n\n{context}"
         )
 
+    model = "claude-sonnet-4-6"
     async with client.messages.stream(
-        model="claude-sonnet-4-6",
+        model=model,
         max_tokens=400,
         system=ADVOCATE_PROMPT,
         messages=[{"role": "user", "content": user_msg}],
@@ -40,3 +43,5 @@ async def run_advocate(
         async for text in stream.text_stream:
             if text:
                 yield text
+        final = await stream.get_final_message()
+        record_usage(session_id, model, getattr(final, "usage", None))

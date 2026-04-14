@@ -4,6 +4,7 @@ Produces the final score and verdict after the debate.
 """
 import json
 from agents.utils import client, format_engineer_context
+from session_store import record_usage
 
 SYNTHESIZER_PROMPT = """You are the final judge in a structured performance review.
 You have: a CODE AUDIT with concrete observations about real diffs, an ADVOCATE argument FOR,
@@ -80,6 +81,7 @@ async def run_synthesizer(
     rebuttal_text: str = "",
     audit_text: str = "",
     project_summary: dict | None = None,
+    session_id: str | None = None,
 ) -> dict:
     """Generate the final score and verdict. Returns a dict."""
     context = format_engineer_context(engineer, project_summary)
@@ -101,9 +103,10 @@ async def run_synthesizer(
     fallback_score = _heuristic_score(engineer)
     fallback_text = f"Evidence-based assessment: {engineer.get('summary', {}).get('prs_merged', 0)} merged PRs, {engineer.get('summary', {}).get('commits', 0)} commits."
 
+    model = "claude-opus-4-6"
     try:
         response = await client.messages.create(
-            model="claude-opus-4-6",
+            model=model,
             max_tokens=1024,
             system=SYNTHESIZER_PROMPT,
             messages=[{"role": "user", "content": user_msg}],
@@ -125,6 +128,8 @@ async def run_synthesizer(
     except Exception as e:
         print(f"[synthesizer] API error for {engineer.get('id')}: {e}")
         return {"score": fallback_score, "text": fallback_text, "engineer_id": engineer["id"]}
+
+    record_usage(session_id, model, getattr(response, "usage", None))
 
     text_block = next((b for b in response.content if b.type == "text"), None)
     if text_block is None or not text_block.text:

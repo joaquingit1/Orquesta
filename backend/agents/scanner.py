@@ -5,6 +5,7 @@ Scanner agent — reads through engineer data and narrates what it finds.
 """
 from typing import AsyncGenerator
 from agents.utils import client, format_engineer_context
+from session_store import record_usage
 
 SCANNER_PROMPT = """You are an AI analyst scanning through an engineer's performance data.
 Narrate what you're reading — PR by PR, metric by metric — as if discovering it for the first time.
@@ -19,6 +20,7 @@ What are the most important signals buried in this data that a manager might mis
 async def run_scanner(
     engineer: dict,
     project_summary: dict | None = None,
+    session_id: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Surface scan — Sonnet narrates what it reads in the data."""
     context = format_engineer_context(engineer, project_summary)
@@ -27,8 +29,9 @@ async def run_scanner(
         f"Narrate what you see as you read it.\n\n{context}"
     )
 
+    model = "claude-sonnet-4-6"
     async with client.messages.stream(
-        model="claude-sonnet-4-6",
+        model=model,
         max_tokens=500,
         system=SCANNER_PROMPT,
         messages=[{"role": "user", "content": prompt}],
@@ -36,11 +39,14 @@ async def run_scanner(
         async for text in stream.text_stream:
             if text:
                 yield text
+        final = await stream.get_final_message()
+        record_usage(session_id, model, getattr(final, "usage", None))
 
 
 async def run_scanner_deep(
     engineer: dict,
     project_summary: dict | None = None,
+    session_id: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Deep analysis — Opus with adaptive thinking. Yields thinking block content."""
     context = format_engineer_context(engineer, project_summary)
@@ -50,8 +56,9 @@ async def run_scanner_deep(
         f"{context}"
     )
 
+    model = "claude-opus-4-6"
     async with client.messages.stream(
-        model="claude-opus-4-6",
+        model=model,
         max_tokens=8000,
         thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],
@@ -68,3 +75,5 @@ async def run_scanner_deep(
                     text = getattr(event.delta, "text", "")
                     if text:
                         yield text
+        final = await stream.get_final_message()
+        record_usage(session_id, model, getattr(final, "usage", None))
