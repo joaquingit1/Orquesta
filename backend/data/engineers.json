@@ -1,0 +1,321 @@
+[
+  {
+    "id": "ana-oliveira",
+    "name": "Ana Oliveira",
+    "role": "Senior Engineer",
+    "avatar": "AO",
+    "salary": "$150k",
+    "tenure": "2.5 years",
+    "timezone": "São Paulo UTC-3",
+    "summary": {
+      "prs_opened": 47,
+      "prs_merged": 44,
+      "commits": 186,
+      "reviews_given": 34,
+      "avg_pr_size": "182 lines",
+      "avg_review_turnaround": "4.2 hours",
+      "test_coverage_trend": "78% → 61% (declining)",
+      "ai_tool_sessions": 156,
+      "ai_tool_adoption": "89%"
+    },
+    "notable_prs": [
+      {
+        "number": 342,
+        "title": "Refactor auth middleware to async pipeline",
+        "files_changed": 12,
+        "additions": 487,
+        "deletions": 891,
+        "description": "Complete rewrite of auth middleware from synchronous chain to async pipeline. Reduced p95 latency from 820ms to 340ms.",
+        "diff_snippet": "// BEFORE\nfunction authMiddleware(req, res, next) {\n  const token = req.headers.authorization;\n  const user = validateTokenSync(token);\n  if (!user) return res.status(401).send('Unauthorized');\n  const permissions = fetchPermissionsSync(user.id);\n  req.user = { ...user, permissions };\n  next();\n}\n\n// AFTER\nasync function authMiddleware(req, res, next) {\n  try {\n    const token = req.headers.authorization;\n    const [user, permissions] = await Promise.all([\n      validateToken(token),\n      token ? fetchPermissions(extractUserId(token)) : null\n    ]);\n    if (!user) return res.status(401).json({ error: 'Unauthorized' });\n    req.user = { ...user, permissions };\n    next();\n  } catch (err) {\n    next(new AuthError(err.message, { cause: err }));\n  }\n}",
+        "quality_signals": ["parallel async", "error propagation", "zero behavior change", "large deletion ratio = simplification"]
+      },
+      {
+        "number": 298,
+        "title": "Implement rate limiter with sliding window",
+        "files_changed": 5,
+        "additions": 234,
+        "deletions": 12,
+        "description": "New rate limiting system using Redis sliding window.",
+        "diff_snippet": "export class SlidingWindowRateLimiter {\n  constructor(\n    private redis: Redis,\n    private windowMs: number,\n    private maxRequests: number\n  ) {}\n\n  async isAllowed(key: string): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {\n    const now = Date.now();\n    const windowStart = now - this.windowMs;\n    \n    const pipe = this.redis.pipeline();\n    pipe.zremrangebyscore(key, 0, windowStart);\n    pipe.zadd(key, now, `${now}:${crypto.randomUUID()}`);\n    pipe.zcard(key);\n    pipe.pexpire(key, this.windowMs);\n    \n    const results = await pipe.exec();\n    const count = results[2][1] as number;\n    \n    return {\n      allowed: count <= this.maxRequests,\n      remaining: Math.max(0, this.maxRequests - count),\n      resetMs: this.windowMs - (now - windowStart)\n    };\n  }\n}",
+        "quality_signals": ["clean abstraction", "proper Redis pipelining", "returns useful metadata"]
+      },
+      {
+        "number": 411,
+        "title": "Quick fix: patch user lookup for null emails",
+        "files_changed": 1,
+        "additions": 3,
+        "deletions": 1,
+        "description": "Hotfix for prod issue — users with null emails were crashing the lookup service.",
+        "diff_snippet": "// BEFORE\nconst user = await db.users.findOne({ email: input.email });\n\n// AFTER  \nif (!input.email) return null;\nconst user = await db.users.findOne({ email: input.email });",
+        "quality_signals": ["no test added for hotfix", "minimal fix but no guard at API boundary"]
+      }
+    ],
+    "review_samples": [
+      {
+        "pr": "#287 (Diego's caching PR)",
+        "comment": "This cache invalidation logic will break if two requests hit the same key within the TTL window. Consider using a lock or check-and-set pattern.",
+        "quality": "high"
+      },
+      {
+        "pr": "#301 (Sofia's first API endpoint)",
+        "comment": "Nice work on the error handling! One suggestion: extract the validation into a separate function so you can reuse it in the batch endpoint.",
+        "quality": "high"
+      }
+    ],
+    "kpis": {
+      "sprint_velocity": "avg 13 points/sprint (team avg: 10)",
+      "goals_completed": "8/10",
+      "goals": [
+        { "goal": "Migrate auth to async pipeline", "status": "completed", "impact": "p95 latency -58%" },
+        { "goal": "Implement rate limiting v2", "status": "completed", "impact": "false positive rate 12% → 0.3%" },
+        { "goal": "Reduce API error rate below 0.1%", "status": "completed", "impact": "0.34% → 0.07%" },
+        { "goal": "Write architecture doc for event system", "status": "completed", "impact": "doc used by 3 teams" },
+        { "goal": "Mentor Sofia on backend patterns", "status": "completed", "impact": "Sofia's PR quality improved 40%" },
+        { "goal": "Lead Q2 planning for auth team", "status": "completed", "impact": "plan adopted" },
+        { "goal": "Improve test coverage to 85%", "status": "missed", "impact": "coverage dropped to 61%" },
+        { "goal": "Reduce tech debt in payments module", "status": "missed", "impact": "not started — meeting load" },
+        { "goal": "Ship SSO integration", "status": "completed", "impact": "3 enterprise clients unblocked" },
+        { "goal": "Run 2 eng brown bags", "status": "completed", "impact": "avg 12 attendees" }
+      ]
+    },
+    "anthropic_usage": {
+      "total_sessions": 156,
+      "total_tokens": "2.4M",
+      "adoption_rate": "89%",
+      "use_cases": ["code review prep", "architecture doc drafting", "debugging complex async issues", "test generation"],
+      "pattern": "HIGH-LEVERAGE",
+      "quality_note": "Uses Claude for high-leverage tasks — architecture and debugging, not just autocomplete."
+    },
+    "score": 8.4,
+    "verdict_tagline": "Exceptional engineer constrained by process.",
+    "rank": 1
+  },
+  {
+    "id": "sofia-torres",
+    "name": "Sofia Torres",
+    "role": "Junior Engineer",
+    "avatar": "ST",
+    "salary": "$70k",
+    "tenure": "8 months",
+    "timezone": "Bogotá UTC-5",
+    "summary": {
+      "prs_opened": 38,
+      "prs_merged": 35,
+      "commits": 131,
+      "reviews_given": 22,
+      "avg_pr_size": "108 lines",
+      "avg_review_turnaround": "6.8 hours",
+      "test_coverage_trend": "54% → 79% (rising sharply)",
+      "ai_tool_sessions": 201,
+      "ai_tool_adoption": "94%"
+    },
+    "notable_prs": [
+      {
+        "number": 367,
+        "title": "Build notification service with queue-based delivery",
+        "files_changed": 8,
+        "additions": 342,
+        "deletions": 0,
+        "description": "Queue-based notification service with retry logic and user preferences.",
+        "diff_snippet": "export class NotificationService {\n  constructor(\n    private queue: JobQueue,\n    private channels: Map<string, NotificationChannel>\n  ) {}\n\n  async send(notification: Notification): Promise<void> {\n    const preferences = await this.getPreferences(notification.userId);\n    const enabledChannels = notification.channels.filter(\n      ch => preferences.enabled.includes(ch)\n    );\n\n    await Promise.all(\n      enabledChannels.map(channel =>\n        this.queue.enqueue('notification.send', {\n          channel,\n          notification,\n          retries: 3,\n          backoff: 'exponential'\n        })\n      )\n    );\n  }\n}",
+        "quality_signals": ["queue-based from day one", "respects user preferences", "retry with backoff", "clean separation of concerns"]
+      },
+      {
+        "number": 312,
+        "title": "Add email verification flow",
+        "files_changed": 4,
+        "additions": 89,
+        "deletions": 12,
+        "description": "Email verification with clean separation of concerns.",
+        "diff_snippet": "export async function verifyEmail(token: string) {\n  const record = await db.emailTokens.findOne({ token, used: false });\n  if (!record) throw new VerificationError('Invalid or expired token');\n  if (record.expiresAt < new Date()) throw new VerificationError('Token expired');\n  \n  await db.transaction(async (tx) => {\n    await tx.users.update(record.userId, { emailVerified: true });\n    await tx.emailTokens.update(record.id, { used: true });\n  });\n  \n  return { success: true };\n}",
+        "quality_signals": ["good structure for tenure", "adopted patterns from senior feedback", "tests included"]
+      }
+    ],
+    "review_samples": [
+      {
+        "pr": "#398 (Diego's dark mode PR)",
+        "comment": "I tested this on the notification preferences page and the contrast ratio on the muted text drops below WCAG AA. Here's a fix: change text-gray-500 to text-gray-400 on line 47.",
+        "quality": "high"
+      }
+    ],
+    "kpis": {
+      "sprint_velocity": "avg 9 points/sprint (was 5 at start — 80% improvement)",
+      "goals_completed": "7/10",
+      "goals": [
+        { "goal": "Build notification service", "status": "completed", "impact": "zero incidents since launch" },
+        { "goal": "Add email verification flow", "status": "completed", "impact": "reduced fake accounts 60%" },
+        { "goal": "Improve personal test coverage to 75%", "status": "completed", "impact": "achieved 79%" },
+        { "goal": "Complete backend fundamentals course", "status": "completed", "impact": "visible in code quality" },
+        { "goal": "Give 2+ code reviews per week", "status": "completed", "impact": "averaged 2.4/week" },
+        { "goal": "Ship user preferences page", "status": "completed", "impact": "adopted by 40% of users" },
+        { "goal": "Reduce notification latency to <500ms", "status": "in_progress", "impact": "at 620ms, close" },
+        { "goal": "Build admin dashboard for notifications", "status": "missed", "impact": "deprioritized" },
+        { "goal": "Write technical blog post", "status": "completed", "impact": "published, 2k views" },
+        { "goal": "Shadow on-call rotation (2 shifts)", "status": "missed", "impact": "scheduling conflict" }
+      ]
+    },
+    "anthropic_usage": {
+      "total_sessions": 201,
+      "total_tokens": "3.1M",
+      "adoption_rate": "94%",
+      "use_cases": ["code review prep", "learning patterns from codebase", "test generation", "debugging", "documentation", "architecture questions"],
+      "pattern": "ACCELERATED-LEARNING",
+      "quality_note": "Highest AI adoption on the team. Uses Claude to accelerate learning — asks it to explain senior engineers' code, generates tests to understand edge cases."
+    },
+    "score": 8.1,
+    "verdict_tagline": "Fastest growth trajectory on the team.",
+    "rank": 2
+  },
+  {
+    "id": "diego-ramirez",
+    "name": "Diego Ramirez",
+    "role": "Mid Engineer",
+    "avatar": "DR",
+    "salary": "$100k",
+    "tenure": "1.5 years",
+    "timezone": "Mexico City UTC-6",
+    "summary": {
+      "prs_opened": 52,
+      "prs_merged": 51,
+      "commits": 203,
+      "reviews_given": 48,
+      "avg_pr_size": "94 lines",
+      "avg_review_turnaround": "2.1 hours",
+      "test_coverage_trend": "82% → 84% (stable+)",
+      "ai_tool_sessions": 84,
+      "ai_tool_adoption": "72%"
+    },
+    "notable_prs": [
+      {
+        "number": 287,
+        "title": "Add Redis caching layer for user profiles",
+        "files_changed": 6,
+        "additions": 156,
+        "deletions": 23,
+        "description": "Redis caching with metrics instrumentation.",
+        "diff_snippet": "export class UserProfileCache {\n  private readonly TTL = 300; // 5 minutes\n\n  async get(userId: string): Promise<UserProfile | null> {\n    const cached = await this.redis.get(`profile:${userId}`);\n    if (cached) {\n      this.metrics.increment('cache.hit');\n      return JSON.parse(cached);\n    }\n    this.metrics.increment('cache.miss');\n    const profile = await this.db.users.findById(userId);\n    if (profile) {\n      await this.redis.setex(`profile:${userId}`, this.TTL, JSON.stringify(profile));\n    }\n    return profile;\n  }\n\n  async invalidate(userId: string): Promise<void> {\n    await this.redis.del(`profile:${userId}`);\n  }\n}",
+        "quality_signals": ["clean cache pattern", "metrics instrumented", "but Ana caught a concurrency issue in review"]
+      },
+      {
+        "number": 356,
+        "title": "Add pagination to all list endpoints",
+        "files_changed": 14,
+        "additions": 312,
+        "deletions": 87,
+        "description": "Consistent pagination across all API list endpoints.",
+        "diff_snippet": "export function paginate<T>(query: Query<T>, params: PaginationParams): PaginatedQuery<T> {\n  const { page = 1, limit = 20, sortBy = 'createdAt', order = 'desc' } = params;\n  return {\n    ...query,\n    skip: (page - 1) * limit,\n    take: limit,\n    orderBy: { [sortBy]: order },\n    _meta: { page, limit, sortBy, order }\n  };\n}",
+        "quality_signals": ["good abstraction", "applied consistently across 14 files", "sensible defaults"]
+      }
+    ],
+    "review_samples": [
+      {
+        "pr": "#389 (Carlos's webhook handler)",
+        "comment": "This works, but the retry logic is buried inside the handler. If we extract it into a withRetry() wrapper, we can reuse it. Want me to pair on this?",
+        "quality": "exceptional"
+      }
+    ],
+    "kpis": {
+      "sprint_velocity": "avg 11 points/sprint",
+      "goals_completed": "7/10",
+      "goals": [
+        { "goal": "Add caching layer for user profiles", "status": "completed", "impact": "API response time -40%" },
+        { "goal": "Paginate all list endpoints", "status": "completed", "impact": "eliminated 3 timeout incidents" },
+        { "goal": "Reduce bundle size by 15%", "status": "completed", "impact": "achieved 18% reduction" },
+        { "goal": "Migrate to new logging format", "status": "completed", "impact": "adopted by 2 other teams" },
+        { "goal": "Ship notification preferences UI", "status": "completed", "impact": "support tickets -25%" },
+        { "goal": "Implement webhook retry system", "status": "in_progress", "impact": "70% complete" },
+        { "goal": "Lead frontend guild meeting (2x)", "status": "completed", "impact": "started frontend standards doc" },
+        { "goal": "Improve lighthouse score to 90+", "status": "missed", "impact": "at 84, blocked by third-party scripts" },
+        { "goal": "Write onboarding guide for new eng", "status": "missed", "impact": "started but not finished" },
+        { "goal": "Ship dark mode", "status": "missed", "impact": "deprioritized mid-quarter" }
+      ]
+    },
+    "anthropic_usage": {
+      "total_sessions": 84,
+      "total_tokens": "1.1M",
+      "adoption_rate": "72%",
+      "use_cases": ["boilerplate generation", "test writing", "documentation"],
+      "pattern": "PRODUCTIVITY",
+      "quality_note": "Uses AI for repetitive tasks. Hasn't adopted it for design or architecture thinking yet."
+    },
+    "score": 7.6,
+    "verdict_tagline": "Reliable executor, ready for more scope.",
+    "rank": 3
+  },
+  {
+    "id": "carlos-mendez",
+    "name": "Carlos Mendez",
+    "role": "Senior Engineer",
+    "avatar": "CM",
+    "salary": "$150k",
+    "tenure": "3 years",
+    "timezone": "Buenos Aires UTC-3",
+    "summary": {
+      "prs_opened": 29,
+      "prs_merged": 26,
+      "commits": 94,
+      "reviews_given": 11,
+      "avg_pr_size": "67 lines",
+      "avg_review_turnaround": "18.4 hours",
+      "test_coverage_trend": "81% → 62% (declining sharply)",
+      "ai_tool_sessions": 23,
+      "ai_tool_adoption": "34%"
+    },
+    "notable_prs": [
+      {
+        "number": 389,
+        "title": "Add webhook handler for Stripe events",
+        "files_changed": 3,
+        "additions": 89,
+        "deletions": 4,
+        "description": "Stripe webhook handler — functional but minimal.",
+        "diff_snippet": "app.post('/webhooks/stripe', async (req, res) => {\n  const sig = req.headers['stripe-signature'];\n  let event;\n  try {\n    event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);\n  } catch (err) {\n    return res.status(400).send(`Webhook Error: ${err.message}`);\n  }\n\n  switch (event.type) {\n    case 'payment_intent.succeeded':\n      await handlePaymentSuccess(event.data.object);\n      break;\n    case 'payment_intent.failed':\n      await handlePaymentFailure(event.data.object);\n      break;\n    default:\n      console.log(`Unhandled event type: ${event.type}`);\n  }\n\n  res.json({ received: true });\n});",
+        "quality_signals": ["functional but minimal", "no retry logic", "no dead letter queue", "console.log instead of structured logging"]
+      },
+      {
+        "number": 401,
+        "title": "Fix: handle null in payment amount",
+        "files_changed": 1,
+        "additions": 5,
+        "deletions": 2,
+        "description": "Null check hotfix for payment amounts.",
+        "diff_snippet": "// BEFORE\nconst amount = payment.amount * 100;\n\n// AFTER\nconst amount = (payment.amount ?? 0) * 100;\nif (!payment.amount) {\n  logger.warn('Payment with null amount', { paymentId: payment.id });\n}",
+        "quality_signals": ["nullish coalescing to 0 for money is dangerous", "should throw, not default", "no test"]
+      }
+    ],
+    "review_samples": [
+      {
+        "pr": "#367 (Sofia's notification service)",
+        "comment": "LGTM",
+        "quality": "low"
+      }
+    ],
+    "kpis": {
+      "sprint_velocity": "avg 7 points/sprint (was 12 last quarter)",
+      "goals_completed": "4/10",
+      "goals": [
+        { "goal": "Build Stripe webhook integration", "status": "completed", "impact": "functional but low quality" },
+        { "goal": "Implement payment retry logic", "status": "missed", "impact": "not started" },
+        { "goal": "Migrate payments to new schema", "status": "missed", "impact": "30% complete" },
+        { "goal": "Reduce payment failure rate to <2%", "status": "missed", "impact": "still at 4.7%" },
+        { "goal": "Add monitoring dashboards for payments", "status": "completed", "impact": "basic dashboards created" },
+        { "goal": "Write runbook for payment incidents", "status": "completed", "impact": "used once during incident" },
+        { "goal": "Review 3+ PRs per week", "status": "missed", "impact": "averaged 0.8/week" },
+        { "goal": "Mentor new hire on payments domain", "status": "missed", "impact": "new hire went to Ana instead" },
+        { "goal": "Ship subscription billing v2", "status": "missed", "impact": "not started" },
+        { "goal": "Lead payments team retro", "status": "completed", "impact": "held but no action items followed up" }
+      ]
+    },
+    "anthropic_usage": {
+      "total_sessions": 23,
+      "total_tokens": "180K",
+      "adoption_rate": "34%",
+      "use_cases": ["occasional debugging"],
+      "pattern": "UNDERUTILIZED",
+      "quality_note": "Minimal AI adoption. Not using available tools to maintain velocity."
+    },
+    "score": 6.2,
+    "verdict_tagline": "Senior talent in a drift pattern.",
+    "rank": 4
+  }
+]

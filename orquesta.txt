@@ -12,6 +12,9 @@ That's Orquesta. An AI performance review engine that:
 5. Measures how effectively each engineer uses AI tools (Anthropic Console usage) — the meta-metric for 2026
 6. Auto-schedules review meetings based on urgency via cal.com
 
+El resultado es un dashboard que responde la pregunta que hoy ningún equipo puede contestar: "¿cuánto invierto en IA por programador y cuánto me devuelve en productividad y 
+  calidad real?". Permite al tech lead justificar el gasto en IA, detectar quién usa la herramienta de forma eficiente, y ver si la calidad del proyecto mejora o empeora a medida que crece el uso de IA.
+
 The WOW: You click one button. Claude starts reading code on screen — diffs scrolling, reasoning streaming, two agents arguing about whether a refactor was brilliant or over-engineered. The audience watches an AI form opinions about humans using real evidence. It takes 90 seconds to produce what takes managers 2 weeks.
 
 Built for the Anthropic hackathon. Claude Opus for deep code analysis. Claude Sonnet for fast tool calls. Extended thinking for complex judgment. Multi-agent debate for balanced reviews. This is what AI was built to do — read more than any human can, and reason about it honestly.

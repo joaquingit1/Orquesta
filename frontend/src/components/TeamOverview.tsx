@@ -1,0 +1,139 @@
+"use client";
+
+import { motion } from "framer-motion";
+
+interface Engineer {
+  id: string;
+  name: string;
+  role: string;
+  initials: string;
+}
+
+const engineers: Engineer[] = [
+  { id: "ana-oliveira", name: "Ana Oliveira", role: "Senior Engineer", initials: "AO" },
+  { id: "diego-ramirez", name: "Diego Ramirez", role: "Mid Engineer", initials: "DR" },
+  { id: "carlos-mendez", name: "Carlos Mendez", role: "Senior Engineer", initials: "CM" },
+  { id: "sofia-torres", name: "Sofia Torres", role: "Junior Engineer", initials: "ST" },
+];
+
+interface Props {
+  onStart: () => void;
+  completedEngineers: string[];
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.2,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: { duration: 0.3 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" as const },
+  },
+};
+
+export function TeamOverview({ onStart, completedEngineers }: Props) {
+  return (
+    <motion.div
+      key="overview"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="min-h-screen flex flex-col items-center justify-center px-6 py-16"
+    >
+      {/* Brand */}
+      <motion.div variants={itemVariants} className="mb-16 text-center">
+        <h1 className="text-sm font-mono tracking-[0.3em] text-muted uppercase mb-1">
+          Orquesta
+        </h1>
+        <div className="w-8 h-px bg-accent-cyan mx-auto" />
+      </motion.div>
+
+      {/* Heading */}
+      <motion.div variants={itemVariants} className="text-center mb-12">
+        <h2 className="text-3xl font-semibold tracking-tight text-foreground mb-2">
+          Your Engineering Team
+        </h2>
+        <p className="text-sm text-muted">
+          4 engineers &middot; Q1 2026
+        </p>
+      </motion.div>
+
+      {/* Engineer Cards */}
+      <motion.div
+        variants={itemVariants}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16 w-full max-w-3xl"
+      >
+        {engineers.map((eng, i) => {
+          const isCompleted = completedEngineers.includes(eng.id);
+
+          return (
+            <motion.div
+              key={eng.id}
+              variants={itemVariants}
+              whileHover={{ scale: 1.03, borderColor: "rgba(6, 182, 212, 0.3)" }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col items-center gap-3 rounded-xl border border-card-border bg-card-bg p-6
+                         hover:border-accent-cyan/30 transition-colors cursor-default"
+            >
+              {/* Avatar */}
+              <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-sm font-medium text-foreground/80">
+                {eng.initials}
+              </div>
+
+              {/* Name & Role */}
+              <div className="text-center">
+                <p className="text-sm font-medium text-foreground">{eng.name}</p>
+                <p className="text-xs text-muted mt-0.5">{eng.role}</p>
+              </div>
+
+              {/* Status */}
+              {isCompleted ? (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <svg
+                    className="w-3.5 h-3.5 text-accent-green"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-xs text-accent-green font-medium">Reviewed</span>
+                </div>
+              ) : (
+                <span className="text-xs text-muted/60 mt-1">Not yet reviewed</span>
+              )}
+            </motion.div>
+          );
+        })}
+      </motion.div>
+
+      {/* CTA Button */}
+      <motion.div variants={itemVariants}>
+        <button
+          onClick={onStart}
+          className="pulse-glow rounded-full bg-accent-cyan px-8 py-3 text-sm font-semibold text-black
+                     hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
+        >
+          Run Performance Review Cycle
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
