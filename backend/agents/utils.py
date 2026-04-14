@@ -1,0 +1,65 @@
+import anthropic
+import os
+
+# Single shared async client for all agents
+client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+
+def format_engineer_context(engineer: dict) -> str:
+    """Build a rich text representation of an engineer's data for agent prompts."""
+    prs = engineer.get("notable_prs", [])
+    pr_lines = []
+    for pr in prs:
+        pr_lines.append(
+            f"  PR #{pr['number']}: {pr['title']}\n"
+            f"    +{pr.get('additions', 0)}/-{pr.get('deletions', 0)} lines, "
+            f"{pr.get('files_changed', 0)} files changed\n"
+            f"    Description: {pr.get('description', '')}\n"
+            f"    Quality signals: {pr.get('quality_signals', [])}"
+        )
+
+    reviews = engineer.get("review_quality_samples", [])
+    review_lines = [
+        f"  {r['pr_reviewed']}\n"
+        f"    Comment: \"{r['comment']}\"\n"
+        f"    Assessment: {r['quality']}"
+        for r in reviews
+    ]
+
+    kpis = engineer.get("kpis", {})
+    goals = kpis.get("goals_detail", [])
+    goal_lines = [
+        f"  [{g['status'].upper()}] {g['goal']} — impact: {g.get('impact', 'N/A')}"
+        for g in goals
+    ]
+
+    usage = engineer.get("anthropic_usage", {})
+
+    return f"""=== {engineer['name']} ({engineer['role']}) ===
+Tenure: {engineer.get('tenure', 'N/A')} | Timezone: {engineer.get('timezone', 'N/A')} | Salary: {engineer.get('salary', 'N/A')}
+
+GITHUB ACTIVITY (this quarter):
+  PRs opened: {engineer['summary']['prs_opened']} | Merged: {engineer['summary']['prs_merged']}
+  Commits: {engineer['summary']['commits']}
+  Reviews given to others: {engineer['summary']['reviews_given']}
+  Avg PR size: {engineer['summary']['avg_pr_size']}
+  Avg review turnaround: {engineer['summary']['avg_review_turnaround']}
+  Test coverage trend: {engineer['summary']['test_coverage_trend']}
+  AI tool sessions: {engineer['summary']['ai_tool_sessions']} ({engineer['summary']['ai_tool_adoption']} adoption rate)
+
+NOTABLE PRs:
+{chr(10).join(pr_lines) if pr_lines else '  (none)'}
+
+CODE REVIEW QUALITY SAMPLES:
+{chr(10).join(review_lines) if review_lines else '  (none)'}
+
+SPRINT VELOCITY & KPIs:
+  Velocity: {kpis.get('sprint_velocity', 'N/A')}
+  Goals completed: {kpis.get('goals_completed', 'N/A')}
+{chr(10).join(goal_lines)}
+
+AI TOOL USAGE:
+  Sessions: {usage.get('total_sessions', 0)} | Tokens used: {usage.get('total_tokens', '0')}
+  Adoption rate: {usage.get('adoption_rate', 'N/A')}
+  Use cases: {usage.get('use_cases', [])}
+  Analyst note: {usage.get('quality_note', '')}"""

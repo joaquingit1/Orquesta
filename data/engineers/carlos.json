@@ -1,0 +1,74 @@
+{
+  "id": "carlos",
+  "name": "Carlos Mendez",
+  "role": "Senior Engineer",
+  "github": "carlos-mendez",
+  "salary": "$150k",
+  "tenure": "3 years",
+  "timezone": "Buenos Aires UTC-3",
+  "summary": {
+    "prs_opened": 29,
+    "prs_merged": 26,
+    "commits": 94,
+    "reviews_given": 11,
+    "avg_pr_size": "67 lines",
+    "avg_review_turnaround": "18.4 hours",
+    "test_coverage_trend": "81% → 62% (declining sharply)",
+    "ai_tool_sessions": 23,
+    "ai_tool_adoption": "34%"
+  },
+  "notable_prs": [
+    {
+      "number": 389,
+      "title": "Add webhook handler for Stripe events",
+      "files_changed": 3,
+      "additions": 89,
+      "deletions": 4,
+      "description": "Implements a webhook handler for Stripe payment events with signature verification.",
+      "diff_snippet": "app.post('/webhooks/stripe', async (req, res) => {\n  const sig = req.headers['stripe-signature'];\n  let event;\n  try {\n    event = stripe.webhooks.constructEvent(req.body, sig, WEBHOOK_SECRET);\n  } catch (err) {\n    return res.status(400).send(`Webhook Error: ${err.message}`);\n  }\n\n  switch (event.type) {\n    case 'payment_intent.succeeded':\n      await handlePaymentSuccess(event.data.object);\n      break;\n    case 'payment_intent.failed':\n      await handlePaymentFailure(event.data.object);\n      break;\n    default:\n      console.log(`Unhandled event type: ${event.type}`);\n  }\n\n  res.json({ received: true });\n});",
+      "review_comments": 5,
+      "quality_signals": ["functional but minimal", "no retry logic", "no dead letter queue", "console.log instead of structured logging", "Diego's review suggested improvements that weren't implemented"]
+    },
+    {
+      "number": 401,
+      "title": "Fix: handle null in payment amount",
+      "files_changed": 1,
+      "additions": 5,
+      "deletions": 2,
+      "description": "Adds null check for payment amount to prevent multiplication errors.",
+      "diff_snippet": "// BEFORE\nconst amount = payment.amount * 100;\n\n// AFTER\nconst amount = (payment.amount ?? 0) * 100;\nif (!payment.amount) {\n  logger.warn('Payment with null amount', { paymentId: payment.id });\n}",
+      "review_comments": 2,
+      "quality_signals": ["nullish coalescing to 0 for money is dangerous", "should throw, not default", "no test"]
+    }
+  ],
+  "review_quality_samples": [
+    {
+      "pr_reviewed": "#367 (Sofia's notification service)",
+      "comment": "LGTM",
+      "quality": "low — no substantive feedback on a junior's PR"
+    }
+  ],
+  "kpis": {
+    "sprint_velocity": "avg 7 points/sprint (was 12 last quarter)",
+    "goals_completed": "4/10",
+    "goals_detail": [
+      { "goal": "Build Stripe webhook integration", "status": "completed", "impact": "functional but low quality" },
+      { "goal": "Implement payment retry logic", "status": "missed", "impact": "not started" },
+      { "goal": "Migrate payments to new schema", "status": "missed", "impact": "30% complete" },
+      { "goal": "Reduce payment failure rate to <2%", "status": "missed", "impact": "still at 4.7%" },
+      { "goal": "Add monitoring dashboards for payments", "status": "completed", "impact": "basic dashboards created" },
+      { "goal": "Write runbook for payment incidents", "status": "completed", "impact": "used once during incident" },
+      { "goal": "Review 3+ PRs per week", "status": "missed", "impact": "averaged 0.8/week" },
+      { "goal": "Mentor new hire on payments domain", "status": "missed", "impact": "new hire went to Ana instead" },
+      { "goal": "Ship subscription billing v2", "status": "missed", "impact": "not started" },
+      { "goal": "Lead payments team retro", "status": "completed", "impact": "held but no action items followed up" }
+    ]
+  },
+  "anthropic_usage": {
+    "total_sessions": 23,
+    "total_tokens": "180K",
+    "use_cases": ["occasional debugging"],
+    "adoption_rate": "34%",
+    "quality_note": "Minimal AI adoption. Not using available tools to maintain velocity. This could be a symptom of broader disengagement or a philosophical objection — worth exploring in review."
+  }
+}

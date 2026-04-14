@@ -1,0 +1,74 @@
+{
+  "id": "sofia",
+  "name": "Sofia Torres",
+  "role": "Junior Engineer",
+  "github": "sofia-torres",
+  "salary": "$70k",
+  "tenure": "8 months",
+  "timezone": "Bogotá UTC-5",
+  "summary": {
+    "prs_opened": 38,
+    "prs_merged": 35,
+    "commits": 131,
+    "reviews_given": 22,
+    "avg_pr_size": "108 lines",
+    "avg_review_turnaround": "6.8 hours",
+    "test_coverage_trend": "54% → 79% (rising sharply)",
+    "ai_tool_sessions": 201,
+    "ai_tool_adoption": "94%"
+  },
+  "notable_prs": [
+    {
+      "number": 367,
+      "title": "Build notification service with queue-based delivery",
+      "files_changed": 8,
+      "additions": 342,
+      "deletions": 0,
+      "description": "New notification service with queue-based delivery, user preferences, and retry logic with exponential backoff.",
+      "diff_snippet": "export class NotificationService {\n  constructor(\n    private queue: JobQueue,\n    private channels: Map<string, NotificationChannel>\n  ) {}\n\n  async send(notification: Notification): Promise<void> {\n    const preferences = await this.getPreferences(notification.userId);\n    const enabledChannels = notification.channels.filter(\n      ch => preferences.enabled.includes(ch)\n    );\n\n    await Promise.all(\n      enabledChannels.map(channel =>\n        this.queue.enqueue('notification.send', {\n          channel,\n          notification,\n          retries: 3,\n          backoff: 'exponential'\n        })\n      )\n    );\n  }\n}",
+      "review_comments": 2,
+      "quality_signals": ["queue-based from day one", "respects user preferences", "retry with backoff", "clean separation of concerns", "this is not typical junior work"]
+    },
+    {
+      "number": 312,
+      "title": "Add email verification flow",
+      "files_changed": 4,
+      "additions": 89,
+      "deletions": 12,
+      "description": "Implements email verification flow with token generation and expiry.",
+      "diff_snippet": "// Early-career pattern: everything in one function\n// But: input validation, token generation, email sending, and\n// database update are cleanly separated into helper functions.\n// Shows she's learning from Ana's code review feedback.",
+      "review_comments": 3,
+      "quality_signals": ["good structure for tenure", "adopted patterns from senior feedback", "tests included"]
+    }
+  ],
+  "review_quality_samples": [
+    {
+      "pr_reviewed": "#398 (Diego's dark mode PR)",
+      "comment": "I tested this on the notification preferences page and the contrast ratio on the muted text drops below WCAG AA. Here's a fix: change `text-gray-500` to `text-gray-400` on line 47. Screenshot attached.",
+      "quality": "high — caught accessibility issue, tested it, provided fix"
+    }
+  ],
+  "kpis": {
+    "sprint_velocity": "avg 9 points/sprint (was 5 at start of quarter — 80% improvement)",
+    "goals_completed": "7/10",
+    "goals_detail": [
+      { "goal": "Build notification service", "status": "completed", "impact": "zero incidents since launch" },
+      { "goal": "Add email verification flow", "status": "completed", "impact": "reduced fake accounts 60%" },
+      { "goal": "Improve personal test coverage to 75%", "status": "completed", "impact": "achieved 79%" },
+      { "goal": "Complete backend fundamentals course", "status": "completed", "impact": "visible in code quality" },
+      { "goal": "Give 2+ code reviews per week", "status": "completed", "impact": "averaged 2.4/week" },
+      { "goal": "Ship user preferences page", "status": "completed", "impact": "adopted by 40% of users" },
+      { "goal": "Reduce notification latency to <500ms", "status": "in_progress", "impact": "at 620ms, close" },
+      { "goal": "Build admin dashboard for notifications", "status": "missed", "impact": "deprioritized" },
+      { "goal": "Write technical blog post", "status": "completed", "impact": "published, 2k views" },
+      { "goal": "Shadow on-call rotation (2 shifts)", "status": "missed", "impact": "scheduling conflict" }
+    ]
+  },
+  "anthropic_usage": {
+    "total_sessions": 201,
+    "total_tokens": "3.1M",
+    "use_cases": ["code review prep", "learning patterns from codebase", "test generation", "debugging", "documentation", "architecture questions"],
+    "adoption_rate": "94%",
+    "quality_note": "Highest AI adoption on the team. Uses Claude to accelerate learning — asks it to explain senior engineers' code, generates tests to understand edge cases, uses it to prep for code reviews. This is the ideal junior engineer AI usage pattern."
+  }
+}

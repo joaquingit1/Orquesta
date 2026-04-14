@@ -1,0 +1,17 @@
+{
+  "quarter": "Q1 2026",
+  "team": "Engineering",
+  "kpi_summary": {
+    "total_goals": 40,
+    "completed": 26,
+    "in_progress": 3,
+    "missed": 11,
+    "completion_rate": "65%"
+  },
+  "per_person": {
+    "ana":    { "completed": 8, "total": 10, "rate": "80%" },
+    "diego":  { "completed": 7, "total": 10, "rate": "70%" },
+    "carlos": { "completed": 4, "total": 10, "rate": "40%" },
+    "sofia":  { "completed": 7, "total": 10, "rate": "70%" }
+  }
+}
