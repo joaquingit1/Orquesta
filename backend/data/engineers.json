@@ -86,6 +86,18 @@
       "pattern": "HIGH-LEVERAGE",
       "quality_note": "Uses Claude for high-leverage tasks — architecture and debugging, not just autocomplete."
     },
+    "performance_metrics": {
+      "ai_adoption": 89,
+      "ai_written_lines": 45,
+      "fix_others_code": 38,
+      "code_quality": 85,
+      "kpi_completion": 80,
+      "unnecessary_code": 8,
+      "review_impact": 82,
+      "consistency": 78,
+      "complexity_handled": 88,
+      "mentorship": 72
+    },
     "score": 8.4,
     "verdict_tagline": "Exceptional engineer constrained by process.",
     "rank": 1
@@ -161,6 +173,18 @@
       "use_cases": ["code review prep", "learning patterns from codebase", "test generation", "debugging", "documentation", "architecture questions"],
       "pattern": "ACCELERATED-LEARNING",
       "quality_note": "Highest AI adoption on the team. Uses Claude to accelerate learning — asks it to explain senior engineers' code, generates tests to understand edge cases."
+    },
+    "performance_metrics": {
+      "ai_adoption": 94,
+      "ai_written_lines": 62,
+      "fix_others_code": 45,
+      "code_quality": 78,
+      "kpi_completion": 70,
+      "unnecessary_code": 15,
+      "review_impact": 65,
+      "consistency": 72,
+      "complexity_handled": 55,
+      "mentorship": 20
     },
     "score": 8.1,
     "verdict_tagline": "Fastest growth trajectory on the team.",
@@ -238,6 +262,18 @@
       "pattern": "PRODUCTIVITY",
       "quality_note": "Uses AI for repetitive tasks. Hasn't adopted it for design or architecture thinking yet."
     },
+    "performance_metrics": {
+      "ai_adoption": 72,
+      "ai_written_lines": 38,
+      "fix_others_code": 55,
+      "code_quality": 75,
+      "kpi_completion": 70,
+      "unnecessary_code": 22,
+      "review_impact": 68,
+      "consistency": 85,
+      "complexity_handled": 72,
+      "mentorship": 42
+    },
     "score": 7.6,
     "verdict_tagline": "Reliable executor, ready for more scope.",
     "rank": 3
@@ -313,6 +349,18 @@
       "use_cases": ["occasional debugging"],
       "pattern": "UNDERUTILIZED",
       "quality_note": "Minimal AI adoption. Not using available tools to maintain velocity."
+    },
+    "performance_metrics": {
+      "ai_adoption": 34,
+      "ai_written_lines": 8,
+      "fix_others_code": 25,
+      "code_quality": 52,
+      "kpi_completion": 40,
+      "unnecessary_code": 18,
+      "review_impact": 22,
+      "consistency": 45,
+      "complexity_handled": 48,
+      "mentorship": 15
     },
     "score": 6.2,
     "verdict_tagline": "Senior talent in a drift pattern.",

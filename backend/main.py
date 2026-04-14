@@ -251,6 +251,10 @@ async def get_ranking():
                 "prs": e["summary"]["prs_opened"],
                 "kpis": e["kpis"]["goals_completed"],
                 "ai_adoption": e["summary"]["ai_tool_adoption"],
+                "performance_metrics": e.get("performance_metrics", {}),
+                "evidence_positive": REVIEWS[e["id"]]["verdict"]["evidence_positive"],
+                "evidence_negative": REVIEWS[e["id"]]["verdict"]["evidence_negative"],
+                "summary": REVIEWS[e["id"]]["verdict"]["summary"],
             }
             for i, e in enumerate(ranked)
         ],

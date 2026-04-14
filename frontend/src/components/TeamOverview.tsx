@@ -58,7 +58,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
     >
       {/* Brand */}
       <motion.div variants={itemVariants} className="mb-16 text-center">
-        <h1 className="text-sm font-mono tracking-[0.3em] text-muted uppercase mb-1">
+        <h1 className="text-sm font-mono tracking-[0.3em] text-foreground/60 uppercase mb-1">
           Orquesta
         </h1>
         <div className="w-8 h-px bg-accent-cyan mx-auto" />
@@ -69,7 +69,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
         <h2 className="text-3xl font-semibold tracking-tight text-foreground mb-2">
           Your Engineering Team
         </h2>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-foreground/60">
           4 engineers &middot; Q1 2026
         </p>
       </motion.div>
@@ -99,7 +99,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
               {/* Name & Role */}
               <div className="text-center">
                 <p className="text-sm font-medium text-foreground">{eng.name}</p>
-                <p className="text-xs text-muted mt-0.5">{eng.role}</p>
+                <p className="text-xs text-foreground/50 mt-0.5">{eng.role}</p>
               </div>
 
               {/* Status */}
@@ -117,7 +117,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
                   <span className="text-xs text-accent-green font-medium">Reviewed</span>
                 </div>
               ) : (
-                <span className="text-xs text-muted/60 mt-1">Not yet reviewed</span>
+                <span className="text-xs text-foreground/40 mt-1">Not yet reviewed</span>
               )}
             </motion.div>
           );
