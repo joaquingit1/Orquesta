@@ -33,10 +33,24 @@ def format_engineer_context(engineer: dict) -> str:
         for g in goals
     ]
 
-    usage = engineer.get("anthropic_usage", {})
+    usage = engineer.get("anthropic_usage") or {}
+
+    ai_section = (
+        f"AI TOOL USAGE:\n"
+        f"  Sessions: {usage.get('total_sessions', 0)} | Tokens used: {usage.get('total_tokens', '0')}\n"
+        f"  Adoption rate: {usage.get('adoption_rate', 'N/A')}\n"
+        f"  Use cases: {usage.get('use_cases', [])}\n"
+        f"  Analyst note: {usage.get('quality_note', '')}"
+        if usage else
+        "AI TOOL USAGE:\n  Not applicable (GitHub public repo analysis)"
+    )
+
+    tenure = engineer.get("tenure") or "N/A"
+    timezone = engineer.get("timezone") or "N/A"
+    salary = engineer.get("salary") or "N/A"
 
     return f"""=== {engineer['name']} ({engineer['role']}) ===
-Tenure: {engineer.get('tenure', 'N/A')} | Timezone: {engineer.get('timezone', 'N/A')} | Salary: {engineer.get('salary', 'N/A')}
+Tenure: {tenure} | Timezone: {timezone} | Salary: {salary}
 
 GITHUB ACTIVITY (this quarter):
   PRs opened: {engineer['summary']['prs_opened']} | Merged: {engineer['summary']['prs_merged']}
@@ -58,8 +72,4 @@ SPRINT VELOCITY & KPIs:
   Goals completed: {kpis.get('goals_completed', 'N/A')}
 {chr(10).join(goal_lines)}
 
-AI TOOL USAGE:
-  Sessions: {usage.get('total_sessions', 0)} | Tokens used: {usage.get('total_tokens', '0')}
-  Adoption rate: {usage.get('adoption_rate', 'N/A')}
-  Use cases: {usage.get('use_cases', [])}
-  Analyst note: {usage.get('quality_note', '')}"""
+{ai_section}"""

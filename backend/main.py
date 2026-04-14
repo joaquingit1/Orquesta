@@ -3,7 +3,7 @@ load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import team, review, ranking, schedule
+from routers import team, review, ranking, schedule, github
 
 app = FastAPI()
 app.add_middleware(
@@ -17,3 +17,4 @@ app.include_router(team.router,     prefix="/api")
 app.include_router(review.router,   prefix="/api")
 app.include_router(ranking.router,  prefix="/api")
 app.include_router(schedule.router, prefix="/api")
+app.include_router(github.router,   prefix="/api")
