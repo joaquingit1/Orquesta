@@ -14,9 +14,12 @@ Rules:
 - Be fair but honest: don't exaggerate, but don't soft-pedal real issues"""
 
 
-async def run_challenger(engineer: dict) -> AsyncGenerator[str, None]:
+async def run_challenger(
+    engineer: dict,
+    project_summary: dict | None = None,
+) -> AsyncGenerator[str, None]:
     """Stream the challenger's critique of the engineer."""
-    context = format_engineer_context(engineer)
+    context = format_engineer_context(engineer, project_summary)
     user_msg = (
         f"Identify the most significant performance concerns for {engineer['name']} "
         f"based on this data.\n\n{context}"

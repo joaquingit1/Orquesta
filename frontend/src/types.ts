@@ -96,10 +96,11 @@ export interface ScheduleMeeting {
 export type AppScreen = "overview" | "review" | "ranking";
 
 export interface ReviewState {
-  phase: "idle" | "scanning" | "thinking" | "advocate" | "challenger" | "rebuttal" | "verdict" | "complete";
+  phase: "idle" | "scanning" | "thinking" | "audit" | "advocate" | "challenger" | "rebuttal" | "verdict" | "complete";
   currentEngineer: string | null;
   engineerIndex: number;
   thinkingText: string[];
+  auditText: string[];
   advocateText: string[];
   challengerText: string[];
   rebuttalText: string;

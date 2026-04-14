@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ReviewState, PR, Commit, KPIs, AIUsage, VerdictData } from "@/types";
 
@@ -17,6 +17,7 @@ const PHASE_LABELS: Record<string, string> = {
   idle: "Initializing",
   scanning: "Scanning evidence",
   thinking: "Analyzing",
+  audit: "Auditing code",
   advocate: "Advocate speaking",
   challenger: "Challenger speaking",
   rebuttal: "Advocate rebuttal",
@@ -128,27 +129,63 @@ function DiffBlock({ pr }: { pr: PR }) {
   );
 }
 
-function CommitsList({ commits }: { commits: Commit[] }) {
+function CommitsList({ commits, active }: { commits: Commit[]; active: boolean }) {
+  const [cursor, setCursor] = useState(0);
+  const activeRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+
+  useEffect(() => {
+    if (!active || commits.length === 0) return;
+    const id = setInterval(() => {
+      setCursor((c) => (c + 1) % commits.length);
+    }, 900);
+    return () => clearInterval(id);
+  }, [active, commits.length]);
+
+  useEffect(() => {
+    if (!active) return;
+    const el = activeRefs.current[cursor];
+    el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [cursor, active]);
+
   if (commits.length === 0) return null;
   return (
     <motion.div variants={cardEntrance} initial="hidden" animate="visible" className="mb-4">
-      <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50 mb-2">
-        Recent Commits &middot; {commits.length}
-      </h3>
-      <div className="rounded-lg border border-card-border bg-[#0d0d0d] divide-y divide-card-border overflow-hidden">
+      <div className="flex items-center gap-2 mb-2">
+        <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50">
+          Recent Commits &middot; {commits.length}
+        </h3>
+        {active && (
+          <span className="flex items-center gap-1.5 text-[10px] font-mono text-accent-cyan">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse" />
+            reading
+          </span>
+        )}
+      </div>
+      <div className="rounded-lg border border-card-border bg-[#0d0d0d] divide-y divide-card-border overflow-hidden max-h-[28rem] overflow-y-auto">
         {commits.map((c, i) => {
           const when = c.date ? new Date(c.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+          const isActive = active && i === cursor;
           return (
             <motion.a
               key={`${c.sha}-${i}`}
+              ref={(el) => {
+                activeRefs.current[i] = el;
+              }}
               href={c.url || undefined}
               target="_blank"
               rel="noreferrer noopener"
               initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex items-start gap-3 px-3 py-2 hover:bg-white/5 transition-colors"
+              animate={{
+                opacity: active ? (isActive ? 1 : 0.45) : 1,
+                x: 0,
+                backgroundColor: isActive ? "rgba(0, 214, 214, 0.08)" : "rgba(0, 0, 0, 0)",
+              }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="relative flex items-start gap-3 px-3 py-2 hover:bg-white/5 transition-colors"
             >
+              {isActive && (
+                <span className="absolute inset-y-0 left-0 w-0.5 bg-accent-cyan" aria-hidden />
+              )}
               <span className="text-[10px] font-mono text-accent-cyan shrink-0 mt-0.5 w-14">{c.sha}</span>
               <span className="text-xs text-foreground/80 flex-1 min-w-0 truncate">{c.message}</span>
               <span className="text-[10px] text-foreground/50 shrink-0">{when}</span>
@@ -436,6 +473,7 @@ export function LiveReview({ state, elapsedTime }: Props) {
     scrollBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [
     state.thinkingText,
+    state.auditText,
     state.advocateText,
     state.challengerText,
     state.rebuttalText,
@@ -456,6 +494,15 @@ export function LiveReview({ state, elapsedTime }: Props) {
 
   const showThinking =
     phase === "thinking" ||
+    phase === "audit" ||
+    phase === "advocate" ||
+    phase === "challenger" ||
+    phase === "rebuttal" ||
+    phase === "verdict" ||
+    phase === "complete";
+
+  const showAudit =
+    phase === "audit" ||
     phase === "advocate" ||
     phase === "challenger" ||
     phase === "rebuttal" ||
@@ -564,7 +611,10 @@ export function LiveReview({ state, elapsedTime }: Props) {
           </AnimatePresence>
 
           {/* Live commits list */}
-          <CommitsList commits={state.commits} />
+          <CommitsList
+            commits={state.commits}
+            active={phase === "scanning" || phase === "thinking" || phase === "audit" || phase === "advocate" || phase === "challenger" || phase === "rebuttal"}
+          />
 
           {/* Scanning placeholder */}
           {phase === "scanning" && state.prs.length === 0 && state.commits.length === 0 && (
@@ -639,6 +689,18 @@ export function LiveReview({ state, elapsedTime }: Props) {
               paragraphs={state.thinkingText}
               streamingText={phase === "thinking" ? state.currentStreamingText : ""}
               isActive={phase === "thinking"}
+            />
+          )}
+
+          {/* Code Audit */}
+          {showAudit && (
+            <StreamingBlock
+              borderColor="#a78bfa"
+              label="Code Audit"
+              labelColor="#a78bfa"
+              paragraphs={state.auditText}
+              streamingText={phase === "audit" ? state.currentStreamingText : ""}
+              isActive={phase === "audit"}
             />
           )}
 

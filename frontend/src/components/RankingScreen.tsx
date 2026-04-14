@@ -623,6 +623,14 @@ export function RankingScreen({ elapsedTime, sessionId, repoName, transcripts }:
                 </Section>
               )}
 
+              {activeTranscript.audit && (
+                <Section title="Code audit" accent="#a78bfa">
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                    {activeTranscript.audit}
+                  </p>
+                </Section>
+              )}
+
               {activeTranscript.advocate && (
                 <Section title="Advocate" accent="var(--accent-green)">
                   <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">

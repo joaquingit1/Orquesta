@@ -74,11 +74,25 @@ export interface Contributor {
   prs_opened: number;
   prs_merged: number;
   commits: number;
+  impact_score?: number | null;
+}
+
+export interface ProjectSummary {
+  summary: string;
+  stack: string[];
+  critical_paths: string[];
+  peripheral_paths?: string[];
+  size_signal: string;
+  full_name: string;
+  primary_language?: string | null;
+  stars: number;
+  total_files: number;
 }
 
 export interface ImportResponse {
   session_id: string;
   repo: string;
+  project?: ProjectSummary | null;
   contributors: Contributor[];
 }
 
@@ -140,7 +154,7 @@ export function streamGitHubReview(
   const url = `${API_BASE}/api/github/${encodeURIComponent(sessionId)}/review/${encodeURIComponent(engineerId)}/stream`;
   const evtSource = new EventSource(url, { withCredentials: true });
 
-  const named = ["commit", "pr", "scanning", "thinking", "advocate", "challenger", "advocate_reply", "verdict", "done", "error"];
+  const named = ["commit", "pr", "scanning", "thinking", "audit", "advocate", "challenger", "advocate_reply", "verdict", "done", "error"];
   named.forEach((name) => {
     evtSource.addEventListener(name, (e) => {
       try {

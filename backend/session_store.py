@@ -1,13 +1,21 @@
 """In-memory session store for GitHub-imported engineer profiles."""
 import uuid
 
-# _sessions[session_id] = {"engineers": [...], "verdicts": {engineer_id: {score, text}}}
+# _sessions[session_id] = {
+#   "engineers": [...],
+#   "verdicts": {engineer_id: {score, text}},
+#   "project": {summary, stack, critical_paths, ...} | None,
+# }
 _sessions: dict[str, dict] = {}
 
 
-def create_session(engineers: list[dict]) -> str:
+def create_session(engineers: list[dict], project: dict | None = None) -> str:
     session_id = str(uuid.uuid4())[:8]
-    _sessions[session_id] = {"engineers": engineers, "verdicts": {}}
+    _sessions[session_id] = {
+        "engineers": engineers,
+        "verdicts": {},
+        "project": project or None,
+    }
     return session_id
 
 
@@ -31,3 +39,8 @@ def update_verdict(session_id: str, engineer_id: str, score: float, text: str) -
 def get_verdicts(session_id: str) -> dict:
     session = _sessions.get(session_id)
     return session["verdicts"] if session else {}
+
+
+def get_project(session_id: str) -> dict | None:
+    session = _sessions.get(session_id)
+    return session.get("project") if session else None

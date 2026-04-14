@@ -16,9 +16,12 @@ Look for non-obvious patterns: what does the trajectory say? What's the gap betw
 What are the most important signals buried in this data that a manager might miss?"""
 
 
-async def run_scanner(engineer: dict) -> AsyncGenerator[str, None]:
+async def run_scanner(
+    engineer: dict,
+    project_summary: dict | None = None,
+) -> AsyncGenerator[str, None]:
     """Surface scan — Sonnet narrates what it reads in the data."""
-    context = format_engineer_context(engineer)
+    context = format_engineer_context(engineer, project_summary)
     prompt = (
         f"Scan through {engineer['name']}'s performance data. "
         f"Narrate what you see as you read it.\n\n{context}"
@@ -35,9 +38,12 @@ async def run_scanner(engineer: dict) -> AsyncGenerator[str, None]:
                 yield text
 
 
-async def run_scanner_deep(engineer: dict) -> AsyncGenerator[str, None]:
+async def run_scanner_deep(
+    engineer: dict,
+    project_summary: dict | None = None,
+) -> AsyncGenerator[str, None]:
     """Deep analysis — Opus with adaptive thinking. Yields thinking block content."""
-    context = format_engineer_context(engineer)
+    context = format_engineer_context(engineer, project_summary)
     prompt = (
         f"{DEEP_SCAN_PROMPT}\n\n"
         f"Engineer under review: {engineer['name']}\n\n"

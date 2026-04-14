@@ -65,7 +65,7 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-sm font-mono tracking-[0.3em] text-muted uppercase mb-1">
+            <h1 className="text-sm font-mono tracking-[0.3em] text-foreground/50 uppercase mb-1">
               Orquesta
             </h1>
             <div className="w-8 h-px bg-accent-cyan" />
@@ -83,7 +83,7 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
               <p className="text-xs text-foreground">{user.name}</p>
               <button
                 onClick={handleLogout}
-                className="text-xs text-muted hover:text-foreground transition-colors cursor-pointer"
+                className="text-xs text-foreground/50 hover:text-foreground transition-colors cursor-pointer"
               >
                 Log out
               </button>
@@ -95,7 +95,7 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
           <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
             Pick a repository
           </h2>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-foreground/50">
             Select one of your GitHub repos. We&apos;ll pull contributors, PRs, and commit activity.
           </p>
         </div>
@@ -106,7 +106,7 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full mb-4 rounded-lg border border-card-border bg-card-bg px-4 py-2 text-sm
-                     text-foreground placeholder:text-muted/60 focus:outline-none focus:border-accent-cyan/50"
+                     text-foreground placeholder:text-foreground/60 focus:outline-none focus:border-accent-cyan/50"
         />
 
         {importError && (
@@ -122,11 +122,11 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
         )}
 
         {!repos && !loadError && (
-          <div className="text-sm text-muted">Loading repositories…</div>
+          <div className="text-sm text-foreground/50">Loading repositories…</div>
         )}
 
         {repos && filtered.length === 0 && (
-          <div className="text-sm text-muted">No repos match &ldquo;{search}&rdquo;.</div>
+          <div className="text-sm text-foreground/50">No repos match &ldquo;{search}&rdquo;.</div>
         )}
 
         <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
@@ -149,15 +149,15 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
                     </span>
                     {repo.private && (
                       <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded
-                                       border border-muted/30 text-muted">
+                                       border border-muted/30 text-foreground/50">
                         private
                       </span>
                     )}
                   </div>
                   {repo.description && (
-                    <p className="text-xs text-muted mt-1 line-clamp-2">{repo.description}</p>
+                    <p className="text-xs text-foreground/50 mt-1 line-clamp-2">{repo.description}</p>
                   )}
-                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted/70">
+                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-foreground/70">
                     {repo.language && <span>{repo.language}</span>}
                     <span>★ {repo.stars}</span>
                     {repo.pushed_at && <span>pushed {formatDate(repo.pushed_at)}</span>}
@@ -167,7 +167,7 @@ export function RepoPicker({ user, onImported, onLoggedOut }: Props) {
                   {isImporting ? (
                     <span className="text-accent-cyan">Analyzing…</span>
                   ) : (
-                    <span className="text-muted group-hover:text-accent-cyan transition-colors">
+                    <span className="text-foreground/50 group-hover:text-accent-cyan transition-colors">
                       Analyze →
                     </span>
                   )}

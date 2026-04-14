@@ -18,7 +18,7 @@ export function GitHubLogin({ errorMessage }: Props) {
       className="min-h-screen flex flex-col items-center justify-center px-6 py-16"
     >
       <div className="mb-12 text-center">
-        <h1 className="text-sm font-mono tracking-[0.3em] text-muted uppercase mb-1">
+        <h1 className="text-sm font-mono tracking-[0.3em] text-foreground/50 uppercase mb-1">
           Orquesta
         </h1>
         <div className="w-8 h-px bg-accent-cyan mx-auto" />
@@ -28,7 +28,7 @@ export function GitHubLogin({ errorMessage }: Props) {
         <h2 className="text-3xl font-semibold tracking-tight text-foreground mb-3">
           Analyze any GitHub repo
         </h2>
-        <p className="text-sm text-muted leading-relaxed">
+        <p className="text-sm text-foreground/50 leading-relaxed">
           Log in with GitHub to pick one of your repositories.
           We&apos;ll analyze contributors, commits, and PR quality with real evidence — no mocks.
         </p>
@@ -51,8 +51,8 @@ export function GitHubLogin({ errorMessage }: Props) {
         Sign in with GitHub
       </a>
 
-      <p className="mt-6 text-xs text-muted/70">
-        Scope: <code className="text-muted">read:user public_repo</code> — read-only.
+      <p className="mt-6 text-xs text-foreground/70">
+        Scope: <code className="text-foreground/50">read:user public_repo</code> — read-only.
       </p>
     </motion.div>
   );

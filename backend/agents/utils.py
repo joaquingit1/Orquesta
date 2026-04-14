@@ -5,7 +5,7 @@ import os
 client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 
-def format_engineer_context(engineer: dict) -> str:
+def format_engineer_context(engineer: dict, project_summary: dict | None = None) -> str:
     """Build a rich text representation of an engineer's data for agent prompts."""
     prs = engineer.get("notable_prs", [])
     pr_lines = []
@@ -49,7 +49,26 @@ def format_engineer_context(engineer: dict) -> str:
     timezone = engineer.get("timezone") or "N/A"
     salary = engineer.get("salary") or "N/A"
 
-    return f"""=== {engineer['name']} ({engineer['role']}) ===
+    project_block = ""
+    if project_summary:
+        critical = ", ".join(project_summary.get("critical_paths", []) or []) or "(unknown)"
+        stack = ", ".join(project_summary.get("stack", []) or []) or "(unknown)"
+        touched = engineer.get("top_dirs_touched", []) or []
+        touched_line = ", ".join(f"{d['name']}/" for d in touched[:6]) or "(none)"
+        critical_set = {p.strip("/").split("/")[0] for p in (project_summary.get("critical_paths") or []) if p}
+        touched_core = sum(d.get("file_count", 0) for d in touched if d.get("name") in critical_set)
+        touched_total = sum(d.get("file_count", 0) for d in touched) or 1
+        core_pct = round(100 * touched_core / touched_total)
+        project_block = (
+            f"PROJECT CONTEXT: {project_summary.get('full_name', '')} — {project_summary.get('size_signal', '')}\n"
+            f"  Stack: {stack}\n"
+            f"  Critical paths: {critical}\n"
+            f"  Summary: {project_summary.get('summary', '')}\n"
+            f"IMPACT: contributor's changes hit {core_pct}% core paths; "
+            f"dirs touched: {touched_line}\n\n"
+        )
+
+    return project_block + f"""=== {engineer['name']} ({engineer['role']}) ===
 Tenure: {tenure} | Timezone: {timezone} | Salary: {salary}
 
 GITHUB ACTIVITY (this quarter):

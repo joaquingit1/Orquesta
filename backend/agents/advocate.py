@@ -13,9 +13,13 @@ Rules:
 - Focus on impact, initiative, and growth signals"""
 
 
-async def run_advocate(engineer: dict, is_reply: bool = False) -> AsyncGenerator[str, None]:
+async def run_advocate(
+    engineer: dict,
+    is_reply: bool = False,
+    project_summary: dict | None = None,
+) -> AsyncGenerator[str, None]:
     """Stream the advocate's argument for the engineer."""
-    context = format_engineer_context(engineer)
+    context = format_engineer_context(engineer, project_summary)
 
     if is_reply:
         user_msg = (

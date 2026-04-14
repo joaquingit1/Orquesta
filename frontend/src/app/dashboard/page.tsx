@@ -14,6 +14,7 @@ import {
   type AuthUser,
   type Contributor,
   type ImportResponse,
+  type ProjectSummary,
 } from "@/lib/api";
 import type { Commit, PR, ReviewState, VerdictData } from "@/types";
 
@@ -24,6 +25,7 @@ const initialReviewState: ReviewState = {
   currentEngineer: null,
   engineerIndex: -1,
   thinkingText: [],
+  auditText: [],
   advocateText: [],
   challengerText: [],
   rebuttalText: "",
@@ -41,6 +43,7 @@ interface GitHubSession {
   sessionId: string;
   repo: string;
   contributors: Contributor[];
+  project: ProjectSummary | null;
 }
 
 export interface ReviewTranscript {
@@ -49,6 +52,7 @@ export interface ReviewTranscript {
   commits: Commit[];
   prs: PR[];
   analyzing: string;
+  audit: string;
   advocate: string;
   challenger: string;
   rebuttal: string;
@@ -88,6 +92,7 @@ export default function Home() {
       sessionId: payload.session_id,
       repo: payload.repo,
       contributors: payload.contributors,
+      project: payload.project ?? null,
     });
     setCompletedEngineers([]);
     setScreen("overview");
@@ -152,6 +157,7 @@ export default function Home() {
         currentEngineer: contrib.id,
         engineerIndex: index,
         thinkingText: [],
+        auditText: [],
         advocateText: [],
         challengerText: [],
         rebuttalText: "",
@@ -210,6 +216,19 @@ export default function Home() {
                 currentStreamingText: prev.currentStreamingText + text,
               }));
               break;
+            case "audit":
+              setReviewState((prev) => {
+                const switching = prev.phase !== "audit";
+                return {
+                  ...prev,
+                  phase: "audit",
+                  currentStreamingText: switching ? text : prev.currentStreamingText + text,
+                  thinkingText: switching && prev.phase === "thinking"
+                    ? [...prev.thinkingText, prev.currentStreamingText]
+                    : prev.thinkingText,
+                };
+              });
+              break;
             case "advocate":
               setReviewState((prev) => {
                 const switching = prev.phase !== "advocate";
@@ -221,6 +240,9 @@ export default function Home() {
                   thinkingText: switching && prev.phase === "thinking"
                     ? [...prev.thinkingText, prev.currentStreamingText]
                     : prev.thinkingText,
+                  auditText: switching && prev.phase === "audit"
+                    ? [...prev.auditText, prev.currentStreamingText]
+                    : prev.auditText,
                 };
               });
               break;
@@ -276,6 +298,7 @@ export default function Home() {
         onDone: () => {
           setReviewState((prev) => {
             const analyzing = [...prev.thinkingText, prev.phase === "thinking" ? prev.currentStreamingText : ""].filter(Boolean).join("\n\n");
+            const audit = [...prev.auditText, prev.phase === "audit" ? prev.currentStreamingText : ""].filter(Boolean).join("\n\n");
             const advocate = [...prev.advocateText, prev.phase === "advocate" ? prev.currentStreamingText : ""].filter(Boolean).join("\n\n");
             const challenger = [...prev.challengerText, prev.phase === "challenger" ? prev.currentStreamingText : ""].filter(Boolean).join("\n\n");
             const rebuttal = prev.rebuttalText || (prev.phase === "rebuttal" ? prev.currentStreamingText : "");
@@ -288,6 +311,7 @@ export default function Home() {
                 commits: prev.commits,
                 prs: prev.prs,
                 analyzing,
+                audit,
                 advocate,
                 challenger,
                 rebuttal,
@@ -352,6 +376,7 @@ export default function Home() {
             engineers={overviewEngineers}
             subtitle={ghSession ? ghSession.repo : undefined}
             onBack={ghSession ? handleBackToPicker : undefined}
+            project={ghSession?.project ?? null}
           />
         )}
         {screen === "review" && (
