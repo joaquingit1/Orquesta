@@ -9,7 +9,7 @@ interface Engineer {
   initials: string;
 }
 
-const engineers: Engineer[] = [
+const defaultEngineers: Engineer[] = [
   { id: "ana-oliveira", name: "Ana Oliveira", role: "Senior Engineer", initials: "AO" },
   { id: "diego-ramirez", name: "Diego Ramirez", role: "Mid Engineer", initials: "DR" },
   { id: "carlos-mendez", name: "Carlos Mendez", role: "Senior Engineer", initials: "CM" },
@@ -19,6 +19,10 @@ const engineers: Engineer[] = [
 interface Props {
   onStart: () => void;
   completedEngineers: string[];
+  // Optional — when provided, shows GitHub contributors instead of the demo team.
+  engineers?: Engineer[];
+  subtitle?: string;
+  onBack?: () => void;
 }
 
 const containerVariants = {
@@ -46,7 +50,13 @@ const itemVariants = {
   },
 };
 
-export function TeamOverview({ onStart, completedEngineers }: Props) {
+export function TeamOverview({ onStart, completedEngineers, engineers, subtitle, onBack }: Props) {
+  const list = engineers && engineers.length > 0 ? engineers : defaultEngineers;
+  const gridCols = list.length >= 4
+    ? "sm:grid-cols-2 lg:grid-cols-4"
+    : list.length === 3
+      ? "sm:grid-cols-3"
+      : "sm:grid-cols-2";
   return (
     <motion.div
       key="overview"
@@ -58,7 +68,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
     >
       {/* Brand */}
       <motion.div variants={itemVariants} className="mb-16 text-center">
-        <h1 className="text-sm font-mono tracking-[0.3em] text-foreground/60 uppercase mb-1">
+        <h1 className="text-sm font-mono tracking-[0.3em] text-muted uppercase mb-1">
           Orquesta
         </h1>
         <div className="w-8 h-px bg-accent-cyan mx-auto" />
@@ -67,19 +77,27 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
       {/* Heading */}
       <motion.div variants={itemVariants} className="text-center mb-12">
         <h2 className="text-3xl font-semibold tracking-tight text-foreground mb-2">
-          Your Engineering Team
+          {engineers ? "Contributors" : "Your Engineering Team"}
         </h2>
-        <p className="text-sm text-foreground/60">
-          4 engineers &middot; Q1 2026
+        <p className="text-sm text-muted">
+          {subtitle || `${list.length} engineers · Q1 2026`}
         </p>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="mt-3 text-xs text-muted hover:text-foreground transition-colors cursor-pointer"
+          >
+            ← Pick another repo
+          </button>
+        )}
       </motion.div>
 
       {/* Engineer Cards */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-16 w-full max-w-3xl"
+        className={`grid grid-cols-1 ${gridCols} gap-4 mb-16 w-full max-w-3xl`}
       >
-        {engineers.map((eng, i) => {
+        {list.map((eng) => {
           const isCompleted = completedEngineers.includes(eng.id);
 
           return (
@@ -99,7 +117,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
               {/* Name & Role */}
               <div className="text-center">
                 <p className="text-sm font-medium text-foreground">{eng.name}</p>
-                <p className="text-xs text-foreground/50 mt-0.5">{eng.role}</p>
+                <p className="text-xs text-muted mt-0.5">{eng.role}</p>
               </div>
 
               {/* Status */}
@@ -117,7 +135,7 @@ export function TeamOverview({ onStart, completedEngineers }: Props) {
                   <span className="text-xs text-accent-green font-medium">Reviewed</span>
                 </div>
               ) : (
-                <span className="text-xs text-foreground/40 mt-1">Not yet reviewed</span>
+                <span className="text-xs text-muted/60 mt-1">Not yet reviewed</span>
               )}
             </motion.div>
           );

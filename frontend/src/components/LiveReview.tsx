@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { ReviewState, PR, KPIs, AIUsage, VerdictData } from "@/types";
+import type { ReviewState, PR, Commit, KPIs, AIUsage, VerdictData } from "@/types";
 
 interface Props {
   state: ReviewState;
@@ -79,7 +79,7 @@ function metricColor(label: string, value: number | string): string {
 /* ---------- sub-components ---------- */
 
 function DiffBlock({ pr }: { pr: PR }) {
-  const lines = pr.diff_snippet.split("\n");
+  const lines = (pr.diff_snippet ?? pr.description ?? "").split("\n");
 
   return (
     <motion.div variants={cardEntrance} initial="hidden" animate="visible" className="mb-4">
@@ -124,6 +124,38 @@ function DiffBlock({ pr }: { pr: PR }) {
           ))}
         </div>
       )}
+    </motion.div>
+  );
+}
+
+function CommitsList({ commits }: { commits: Commit[] }) {
+  if (commits.length === 0) return null;
+  return (
+    <motion.div variants={cardEntrance} initial="hidden" animate="visible" className="mb-4">
+      <h3 className="text-xs font-mono uppercase tracking-wider text-foreground/50 mb-2">
+        Recent Commits &middot; {commits.length}
+      </h3>
+      <div className="rounded-lg border border-card-border bg-[#0d0d0d] divide-y divide-card-border overflow-hidden">
+        {commits.map((c, i) => {
+          const when = c.date ? new Date(c.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+          return (
+            <motion.a
+              key={`${c.sha}-${i}`}
+              href={c.url || undefined}
+              target="_blank"
+              rel="noreferrer noopener"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-start gap-3 px-3 py-2 hover:bg-white/5 transition-colors"
+            >
+              <span className="text-[10px] font-mono text-accent-cyan shrink-0 mt-0.5 w-14">{c.sha}</span>
+              <span className="text-xs text-foreground/80 flex-1 min-w-0 truncate">{c.message}</span>
+              <span className="text-[10px] text-foreground/50 shrink-0">{when}</span>
+            </motion.a>
+          );
+        })}
+      </div>
     </motion.div>
   );
 }
@@ -531,8 +563,11 @@ export function LiveReview({ state, elapsedTime }: Props) {
             )}
           </AnimatePresence>
 
+          {/* Live commits list */}
+          <CommitsList commits={state.commits} />
+
           {/* Scanning placeholder */}
-          {phase === "scanning" && state.prs.length === 0 && (
+          {phase === "scanning" && state.prs.length === 0 && state.commits.length === 0 && (
             <motion.div
               variants={fadeSlide}
               initial="hidden"

@@ -17,8 +17,15 @@ export interface PR {
   additions: number;
   deletions: number;
   description: string;
-  diff_snippet: string;
+  diff_snippet?: string;
   quality_signals: string[];
+}
+
+export interface Commit {
+  sha: string;
+  message: string;
+  date: string;
+  url: string;
 }
 
 export interface KPIGoal {
@@ -67,19 +74,6 @@ export interface Engineer {
   rank: number;
 }
 
-export interface PerformanceMetrics {
-  ai_adoption: number;
-  ai_written_lines: number;
-  fix_others_code: number;
-  code_quality: number;
-  kpi_completion: number;
-  unnecessary_code: number;
-  review_impact: number;
-  consistency: number;
-  complexity_handled: number;
-  mentorship: number;
-}
-
 export interface RankingEntry {
   rank: number;
   id: string;
@@ -90,10 +84,6 @@ export interface RankingEntry {
   prs: number;
   kpis: string;
   ai_adoption: string;
-  performance_metrics: PerformanceMetrics;
-  evidence_positive: string[];
-  evidence_negative: string[];
-  summary: string;
 }
 
 export interface ScheduleMeeting {
@@ -115,6 +105,7 @@ export interface ReviewState {
   rebuttalText: string;
   currentStreamingText: string;
   prs: PR[];
+  commits: Commit[];
   kpis: KPIs | null;
   aiUsage: AIUsage | null;
   profile: { name: string; role: string; id: string; tenure: string; summary: EngineerSummary } | null;
