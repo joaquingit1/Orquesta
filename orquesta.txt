@@ -1,0 +1,17 @@
+ORQUESTA — AI Performance Reviews That Actually Read the Code
+
+Performance reviews are broken. Managers write them from memory. Engineers game them with self-assessments. Nobody reads the actual work. The result: reviews that are political, biased, and months out of date.
+
+What if Claude actually read every commit, every PR, every code review, every KPI — and produced an evidence-based performance review with citations? Not "Ana is a strong engineer." Instead: "Ana's refactor of the auth module (PR #342) reduced p95 latency from 820ms to 340ms. This demonstrates senior-level systems thinking. However, her last 3 PRs had no test coverage, breaking a pattern she maintained all Q1."
+
+That's Orquesta. An AI performance review engine that:
+1. Reads every line of code your team shipped
+2. Analyzes commit quality, PR rigor, review thoughtfulness, and AI tool adoption
+3. Runs a live adversarial review — two Claude agents debate each engineer's performance, one advocating, one challenging, producing a balanced, evidence-backed assessment
+4. Ranks your team with full transparency — every score justified with real work
+5. Measures how effectively each engineer uses AI tools (Anthropic Console usage) — the meta-metric for 2026
+6. Auto-schedules review meetings based on urgency via cal.com
+
+The WOW: You click one button. Claude starts reading code on screen — diffs scrolling, reasoning streaming, two agents arguing about whether a refactor was brilliant or over-engineered. The audience watches an AI form opinions about humans using real evidence. It takes 90 seconds to produce what takes managers 2 weeks.
+
+Built for the Anthropic hackathon. Claude Opus for deep code analysis. Claude Sonnet for fast tool calls. Extended thinking for complex judgment. Multi-agent debate for balanced reviews. This is what AI was built to do — read more than any human can, and reason about it honestly.
